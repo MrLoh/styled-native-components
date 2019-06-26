@@ -46,7 +46,7 @@ const PropsBasedComponent = styled(Component)`
 `;
 
 const ComponentWithAttributes = styled.selectionColor.attrs((p) => ({
-  activeOpacity: p.theme.colors.accent,
+  selectionColor: p.theme.colors.accent,
 }))`
   color: text;
 `;
@@ -62,10 +62,7 @@ const NestedStyleComponent = styled.ScrollView`
 There are also some hooks available:
 
 ```js
-import { ThemeContext, useStyle, useTheme } from 'styled-native-components';
-
-// You can also use the ThemeContext directly, e.g.
-// const useTheme = () => useContext(ThemeContext);
+import { useStyle, useTheme } from 'styled-native-components';
 
 const Component = ({ children }) => {
   const style = useStyle(/*css*/ `
@@ -80,11 +77,25 @@ const Component = ({ children }) => {
 };
 ```
 
-You can overwrite the theme context to use an existing one:
+And you can use the ThemeContext directly:
 
 ```js
-import styled from 'styled-native-components';
+import { ThemeContext } from 'styled-native-components';
+
+class Component extends React.Component {
+  static contextType = ThemeContext;
+
+  render = () => {
+    return <Text selectionColor={this.context.colors.accent}>{this.props.children}</Text>;
+  };
+}
+```
+
+You can also overwrite the theme context to use an existing one:
+
+```js
+import { setThemeContext } from 'styled-native-components';
 import { ThemeContext } from 'styled-components';
 
-styled.setThemeContext(ThemeContext);
+setThemeContext(ThemeContext);
 ```

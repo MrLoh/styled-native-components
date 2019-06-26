@@ -231,7 +231,7 @@ const styled = (Component) => {
   return templateFunction;
 };
 
-styled.setThemeContext = (ExternalThemeContext) => {
+export const setThemeContext = (ExternalThemeContext) => {
   ThemeContext = ExternalThemeContext;
 };
 
