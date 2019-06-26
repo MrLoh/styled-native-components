@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import transform from 'css-to-react-native';
 
-const COLOR_ATTRIBUTES = new Set([
+const colorAttributes = new Set([
   'backgroundColor',
   'color',
   'borderRightColor',
@@ -29,7 +29,7 @@ const COLOR_ATTRIBUTES = new Set([
   'borderTopColor',
   'shadowColor',
 ]);
-const LENGTH_ATTRIBUTES = new Set([
+const lengthAttributes = new Set([
   'width',
   'height',
   'borderBottomEndRadius',
@@ -88,6 +88,7 @@ const vh = Dimensions.get('window').height / 100;
 export let ThemeContext = createContext({});
 
 // resolve css template literal content into a single string, allow for props functions
+const cssCommentRegexp = new RegExp('\\/\\*.+?\\*\\/', 'gs');
 const resolveTemplateLiteral = (strings, expressions, props): string =>
   strings
     .map((str, i) => {
@@ -98,11 +99,12 @@ const resolveTemplateLiteral = (strings, expressions, props): string =>
     })
     .join('')
     // remove comments
-    .replace(/\/\*.+?\*\//gs, '');
+    .replace(cssCommentRegexp, '');
 
-const styleObjectCache = new Map([]);
 // create a RN style object from a single css declaration
+const styleObjectCache = new Map([]);
 const createStyleObject = (cssDeclaration: string): Object => {
+  if (!cssDeclaration) return {};
   let styleObject = styleObjectCache.get(cssDeclaration);
   if (!styleObject) {
     styleObject = transform(
@@ -121,15 +123,17 @@ const createStyleObject = (cssDeclaration: string): Object => {
   return styleObject;
 };
 
-const nestedStyleObjectsCache = new Map([]);
 // create an object of RN style objects from a single css declaration
+const nestedStyleObjectsCache = new Map([]);
+const nestedDeclarationRegExp = new RegExp('\\w+\\s*\\{(.+?)\\}', 'gs');
 const createNestedStyleObject = (nestedCssDeclaration: string): { [key: string]: Object } => {
   let nestedStyleObjects = nestedStyleObjectsCache.get(nestedCssDeclaration);
   if (!nestedStyleObjects) {
     let mainStyleDeclaration = nestedCssDeclaration;
     nestedStyleObjects = {};
-    const nestedStyles = nestedCssDeclaration.matchAll(/\w+\s*\{(.+?)\}/gs);
-    for (const [string, content] of nestedStyles) {
+    let matches;
+    while ((matches = nestedDeclarationRegExp.exec(nestedCssDeclaration))) {
+      const [string, content] = matches;
       const declaration = content.trim();
       const name = string.split('{')[0].trim();
       nestedStyleObjects[`${name}Style`] = createStyleObject(declaration);
@@ -141,16 +145,16 @@ const createNestedStyleObject = (nestedCssDeclaration: string): { [key: string]:
   return nestedStyleObjects;
 };
 
-const IS_WEB = Platform.OS === 'web';
 // resolve any occurences of theme variables in the values of a style object
+const plattformIsWeb = Platform.OS === 'web';
 const resolveThemeVariables = (styleObject, theme) => {
   for (const key in styleObject) {
     // resolve all color names to theme variables if possible
-    if (COLOR_ATTRIBUTES.has(key) && styleObject[key] in theme.colors) {
+    if (colorAttributes.has(key) && styleObject[key] in theme.colors) {
       styleObject[key] = theme.colors[styleObject[key]];
     }
     // resolve all rem and viewport units if not on web where they are supported
-    if (IS_WEB && LENGTH_ATTRIBUTES.has(key) && typeof styleObject[key] === 'string') {
+    if (plattformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
       if (styleObject[key].includes('rem')) {
         styleObject[key] = Number.parseFloat(styleObject[key]) * theme.rem;
       } else if (styleObject[key].includes('vw')) {

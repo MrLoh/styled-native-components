@@ -1,6 +1,6 @@
 {
   "name": "styled-native-components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Styled components like lib for react-native(-web)",
   "repository": "https://github.com/MrLoh/styled-native-components",
   "author": "@MrLoh",
@@ -8,8 +8,10 @@
   "private": false,
   "source": "src/index.js",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "scripts": {
-    "bundle": "rm -rf ./dist && microbundle"
+    "bundle": "rm -rf ./dist && microbundle -f cjs -i src/index.cjs.js && microbundle -f es",
+    "prepublishOnly": "npm run bundle"
   },
   "dependencies": {
     "css-to-react-native": "^2.3.1"
