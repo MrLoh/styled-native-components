@@ -1,0 +1,59 @@
+{
+  "name": "styled-native-components",
+  "version": "0.1.0",
+  "description": "Styled components like lib for react-native(-web)",
+  "repository": "https://github.com/MrLoh/styled-native-components",
+  "author": "@MrLoh",
+  "license": "MIT",
+  "private": false,
+  "source": "src/index.js",
+  "main": "dist/index.js",
+  "scripts": {
+    "bundle": "rm -rf ./dist && microbundle"
+  },
+  "dependencies": {
+    "css-to-react-native": "^2.3.1"
+  },
+  "peerDependencies": {
+    "react": ">= 16.8.0",
+    "react-native": ">= 0.59.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
+    "eslint-plugin-react": "^7.13.0",
+    "eslint-plugin-react-hooks": "^1.6.0",
+    "eslint-plugin-react-native": "^3.7.0",
+    "eslint-plugin-react-perf": "^3.1.0",
+    "microbundle": "^0.11.0",
+    "prettier": "^1.17.1"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "arrowParens": "always",
+    "semi": true,
+    "tabs": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "tabWidth": 2
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "env": {
+      "browser": true,
+      "es6": true
+    },
+    "plugins": [
+      "react",
+      "react-hooks",
+      "react-native",
+      "react-perf"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended",
+      "plugin:react-native/all",
+      "plugin:react-perf/recommended"
+    ]
+  }
+}
