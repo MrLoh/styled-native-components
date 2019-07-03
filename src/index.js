@@ -88,7 +88,7 @@ const vh = Dimensions.get('window').height / 100;
 export let ThemeContext = createContext({});
 
 // resolve css template literal content into a single string, allow for props functions
-const cssCommentRegexp = new RegExp('\\/\\*.+?\\*\\/', 'gs');
+const cssCommentRegexp = new RegExp('\\/\\*[^]+?\\*\\/', 'g');
 const resolveTemplateLiteral = (strings, expressions, props): string =>
   strings
     .map((str, i) => {
@@ -125,7 +125,7 @@ const createStyleObject = (cssDeclaration: string): Object => {
 
 // create an object of RN style objects from a single css declaration
 const nestedStyleObjectsCache = new Map([]);
-const nestedDeclarationRegExp = new RegExp('\\w+\\s*\\{(.+?)\\}', 'gs');
+const nestedDeclarationRegExp = new RegExp('\\w+\\s*\\{([^]+?)\\}', 'g');
 const createNestedStyleObject = (nestedCssDeclaration: string): { [key: string]: Object } => {
   let nestedStyleObjects = nestedStyleObjectsCache.get(nestedCssDeclaration);
   if (!nestedStyleObjects) {
