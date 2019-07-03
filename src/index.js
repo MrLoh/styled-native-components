@@ -168,9 +168,11 @@ const resolveThemeVariables = (styleObject, theme) => {
 };
 
 // generate styleSheet from nested style Object
-const createStyleSheet = (styles: { [key: string]: Object }, theme) => {
+const useStyleSheet = (styles: { [key: string]: Object }, theme) => {
+  return useMemo(() => {
   for (const key in styles) styles[key] = resolveThemeVariables(styles[key], theme);
   return StyleSheet.create(styles);
+  }, [styles, theme]);
 };
 
 export const ThemeProvider = ({ theme, children }) => {
@@ -181,10 +183,8 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const useStyle = (cssDeclaration: string) => {
   const theme = useContext(ThemeContext);
-  return useMemo(() => {
-    const styleObject = createStyleObject(cssDeclaration.trim());
-    return createStyleSheet({ generated: styleObject }, theme).generated;
-  }, [cssDeclaration, theme]);
+  const styles = useMemo(() => ({ generated: createStyleObject(cssDeclaration.trim()) }), []);
+  return useStyleSheet(styles, theme).generated;
 };
 
 const makeTemplateFunction = (Component, transformProps) => (strings, ...expressions) => {
@@ -196,10 +196,8 @@ const makeTemplateFunction = (Component, transformProps) => (strings, ...express
     const styles = createNestedStyleObject(cssString);
     StyledComponentForwardRef = ({ style, ...props }, ref) => {
       const theme = useContext(ThemeContext);
-      const styleProps = useMemo(() => {
-        return createStyleSheet(styles, theme);
-      }, [theme]);
-      if (style) styleProps.style = [styleProps.style, style];
+      let styleProps = useStyleSheet(styles, theme);
+      styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       return createElement(Component, { ...transformProps(props), ...styleProps, ref });
     };
   } else {
@@ -210,11 +208,9 @@ const makeTemplateFunction = (Component, transformProps) => (strings, ...express
       const cssString = useMemo(() => {
         return resolveTemplateLiteral(strings, expressions, { ...props, theme });
       }, [props, theme]);
-      const styleProps = useMemo(() => {
-        const styles = createNestedStyleObject(cssString);
-        return createStyleSheet(styles, theme);
-      }, [cssString, theme]);
-      if (style) styleProps.style = [styleProps.style, style];
+      const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
+      let styleProps = useStyleSheet(styles, theme);
+      styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       return createElement(Component, { ...props, ...styleProps, ref }, children);
     };
   }
