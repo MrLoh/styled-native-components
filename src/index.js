@@ -154,7 +154,7 @@ const resolveThemeVariables = (styleObject, theme) => {
       styleObject[key] = theme.colors[styleObject[key]];
     }
     // resolve all rem and viewport units if not on web where they are supported
-    if (plattformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
+    if (!plattformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
       if (styleObject[key].includes('rem')) {
         styleObject[key] = Number.parseFloat(styleObject[key]) * theme.rem;
       } else if (styleObject[key].includes('vw')) {
