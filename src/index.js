@@ -1,5 +1,14 @@
 // @flow
-import { useMemo, useContext, forwardRef, memo, createElement, createContext } from 'react';
+import {
+  useMemo,
+  useContext,
+  useState,
+  useEffect,
+  forwardRef,
+  memo,
+  createElement,
+  createContext,
+} from 'react';
 import {
   View,
   Text,
@@ -82,8 +91,28 @@ const lengthAttributes = new Set([
   'letterSpacing',
 ]);
 
-const vw = Dimensions.get('window').width / 100;
-const vh = Dimensions.get('window').height / 100;
+const WINDOW_DIMENSIONS_DEBOUNCE = 500;
+const windowDimensionListeners = new Map();
+let initialWindowDimensions = Dimensions.get('window');
+let timeoutId = null;
+Dimensions.addEventListener('change', ({ window }) => {
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    initialWindowDimensions = window;
+    windowDimensionListeners.forEach((listener) => listener(window));
+  }, WINDOW_DIMENSIONS_DEBOUNCE);
+});
+
+let windowDimensionListenerId = 0;
+export const useWindowDimensions = (): { width: number, height: number } => {
+  const [dimensions, setDimensions] = useState(initialWindowDimensions);
+  useEffect(() => {
+    const listenerId = windowDimensionListenerId++;
+    windowDimensionListeners.set(listenerId, setDimensions);
+    return () => windowDimensionListeners.delete(listenerId);
+  }, []);
+  return dimensions;
+};
 
 export let ThemeContext = createContext({});
 
@@ -147,7 +176,7 @@ const createNestedStyleObject = (nestedCssDeclaration: string): { [key: string]:
 
 // resolve any occurences of theme variables in the values of a style object
 const plattformIsWeb = Platform.OS === 'web';
-const resolveThemeVariables = (styleObject, theme) => {
+const resolveThemeVariables = (styleObject, theme, windowDimensions) => {
   for (const key in styleObject) {
     // resolve all color names to theme variables if possible
     if (colorAttributes.has(key) && styleObject[key] in theme.colors) {
@@ -158,9 +187,9 @@ const resolveThemeVariables = (styleObject, theme) => {
       if (styleObject[key].includes('rem')) {
         styleObject[key] = Number.parseFloat(styleObject[key]) * theme.rem;
       } else if (styleObject[key].includes('vw')) {
-        styleObject[key] = Number.parseFloat(styleObject[key]) * vw;
+        styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.width) / 100;
       } else if (styleObject[key].includes('vh')) {
-        styleObject[key] = Number.parseFloat(styleObject[key]) * vh;
+        styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.height) / 100;
       }
     }
   }
@@ -169,10 +198,15 @@ const resolveThemeVariables = (styleObject, theme) => {
 
 // generate styleSheet from nested style Object
 const useStyleSheet = (styles: { [key: string]: Object }, theme) => {
+  const windowDimensions = useWindowDimensions();
   return useMemo(() => {
-  for (const key in styles) styles[key] = resolveThemeVariables(styles[key], theme);
-  return StyleSheet.create(styles);
-  }, [styles, theme]);
+    // we need to make sure to do a deep clone here, so that theme and viewport units can be resolved from original strings
+    const stylesCopy = { ...styles };
+    for (const key in stylesCopy) {
+      stylesCopy[key] = resolveThemeVariables({ ...stylesCopy[key] }, theme, windowDimensions);
+    }
+    return StyleSheet.create(stylesCopy);
+  }, [styles, theme, windowDimensions]);
 };
 
 export const ThemeProvider = ({ theme, children }) => {

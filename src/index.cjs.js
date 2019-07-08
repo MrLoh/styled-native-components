@@ -1,9 +1,7 @@
-import styled, { ThemeContext, ThemeProvider, useTheme, useStyle, setThemeContext } from './index';
+import styled, * as _exports from './index';
 
-styled.ThemeContext = ThemeContext;
-styled.ThemeProvider = ThemeProvider;
-styled.useTheme = useTheme;
-styled.useStyle = useStyle;
-styled.setThemeContext = setThemeContext;
+for (const key in _exports) {
+  styled[key] = _exports[key];
+}
 
 export default styled;

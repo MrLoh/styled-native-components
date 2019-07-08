@@ -62,15 +62,20 @@ const NestedStyleComponent = styled.ScrollView`
 There are also some hooks available:
 
 ```js
-import { useStyle, useTheme } from 'styled-native-components';
+import { useStyle, useTheme, useWindowDimensions } from 'styled-native-components';
 
 const Component = ({ children }) => {
   const style = useStyle(/*css*/ `
     color: accent;
   `);
   const theme = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
   return (
-    <Text selectionColor={theme.colors.accent} style={style}>
+    <Text
+      selectionColor={theme.colors.accent}
+      style={style}
+      numberOfLines={windowWidth < 400 ? 2 : 1}
+    >
       {children}
     </Text>
   );
