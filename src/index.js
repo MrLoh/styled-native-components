@@ -17,6 +17,7 @@ import {
   ScrollView,
   FlatList,
   SectionList,
+  TouchableWithoutFeedback,
   TouchableOpacity,
   SafeAreaView,
   StyleSheet,
@@ -221,7 +222,10 @@ export const useStyle = (cssDeclaration: string) => {
   return useStyleSheet(styles, theme).generated;
 };
 
-const makeTemplateFunction = (Component, transformProps) => (strings, ...expressions) => {
+const makeTemplateFunction = (Component, transformProps, filterComponentProps) => (
+  strings,
+  ...expressions
+) => {
   const displayName = `Styled(${Component.displayName || Component.name})`;
   let StyledComponentForwardRef;
   if (!expressions.some((exp) => typeof exp === 'function')) {
@@ -232,7 +236,11 @@ const makeTemplateFunction = (Component, transformProps) => (strings, ...express
       const theme = useContext(ThemeContext);
       let styleProps = useStyleSheet(styles, theme);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
-      return createElement(Component, { ...transformProps(props), ...styleProps, ref });
+      return createElement(Component, {
+        ...filterComponentProps(transformProps(props)),
+        ...styleProps,
+        ref,
+      });
     };
   } else {
     // if the cssString depends on props, we can at least ignore changes to children
@@ -245,18 +253,22 @@ const makeTemplateFunction = (Component, transformProps) => (strings, ...express
       const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
       let styleProps = useStyleSheet(styles, theme);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
-      return createElement(Component, { ...props, ...styleProps, ref }, children);
+      return createElement(
+        Component,
+        { ...filterComponentProps(props), ...styleProps, ref },
+        children
+      );
     };
   }
   StyledComponentForwardRef.displayName = displayName;
   return memo(forwardRef(StyledComponentForwardRef));
 };
-const styled = (Component) => {
-  const templateFunction = makeTemplateFunction(Component, (props) => props);
+const styled = (Component, filterComponentProps = (p) => p) => {
+  const templateFunction = makeTemplateFunction(Component, (props) => props, filterComponentProps);
   templateFunction.attrs = (attrs) => {
     const isFunc = typeof attrs === 'function';
     const transformProps = (props) => ({ ...props, ...(isFunc ? attrs(props) : attrs) });
-    return makeTemplateFunction(Component, transformProps);
+    return makeTemplateFunction(Component, transformProps, filterComponentProps);
   };
   return templateFunction;
 };
@@ -265,14 +277,362 @@ export const setThemeContext = (ExternalThemeContext) => {
   ThemeContext = ExternalThemeContext;
 };
 
-styled.View = styled(View);
-styled.Text = styled(Text);
-styled.Image = styled(Image);
-styled.ScrollView = styled(ScrollView);
-styled.FlatList = styled(FlatList);
-styled.SectionList = styled(SectionList);
-styled.TouchableOpacity = styled(TouchableOpacity);
-styled.TextInput = styled(TextInput);
-styled.SafeAreaView = styled(SafeAreaView);
+const viewProps = new Set([
+  'onStartShouldSetResponder',
+  'accessibilityLabel',
+  'accessibilityHint',
+  'hitSlop',
+  'nativeID',
+  'onAccessibilityTap',
+  'onLayout',
+  'onMagicTap',
+  'onMoveShouldSetResponder',
+  'onMoveShouldSetResponderCapture',
+  'onResponderGrant',
+  'onResponderMove',
+  'onResponderReject',
+  'onResponderRelease',
+  'onResponderTerminate',
+  'onResponderTerminationRequest',
+  'accessible',
+  'onStartShouldSetResponderCapture',
+  'pointerEvents',
+  'removeClippedSubviews',
+  'testID',
+  'accessibilityComponentType',
+  'accessibilityLiveRegion',
+  'collapsable',
+  'importantForAccessibility',
+  'needsOffscreenAlphaCompositing',
+  'renderToHardwareTextureAndroid',
+  'accessibilityRole',
+  'accessibilityStates',
+  'accessibilityTraits',
+  'accessibilityViewIsModal',
+  'accessibilityElementsHidden',
+  'accessibilityIgnoresInvertColors',
+  'shouldRasterizeIOS',
+]);
+
+const domProps = new Set([
+  'allowFullScreen',
+  'autoComplete',
+  'autoFocus',
+  'challenge',
+  'charSet',
+  'checked',
+  'className',
+  'content',
+  'contentEditable',
+  'crossOrigin',
+  'data',
+  'disabled',
+  'draggable',
+  'href',
+  'id',
+  'scrolling',
+  'spellCheck',
+  'tabIndex',
+  'target',
+  'type',
+  'wrap',
+  'onCopy',
+  'onCut',
+  'onPaste',
+  'onCompositionEnd',
+  'onCompositionStart',
+  'onCompositionUpdate',
+  'onKeyDown',
+  'onKeyPress',
+  'onKeyUp',
+  'onFocus',
+  'onBlur',
+  'onChange',
+  'onInput',
+  'onInvalid',
+  'onSubmit',
+  'onClick',
+  'onContextMenu',
+  'onDoubleClick',
+  'onDrag',
+  'onDragEnd',
+  'onDragEnter',
+  'onDragExit',
+  'onDragLeave',
+  'onDragOver',
+  'onDragStart',
+  'onDrop',
+  'onMouseDown',
+  'onMouseEnter',
+  'onMouseLeave',
+  'onMouseMove',
+  'onMouseOut',
+  'onMouseOver',
+  'onMouseUp',
+  'onPointerDown',
+  'onPointerMove',
+  'onPointerUp',
+  'onPointerCancel',
+  'onGotPointerCapture',
+  'onLostPointerCapture',
+  'onPointerEnter',
+  'onPointerLeave',
+  'onPointerOver',
+  'onPointerOut',
+  'onSelect',
+  'onTouchCancel',
+  'onTouchEnd',
+  'onTouchMove',
+  'onTouchStart',
+  'onScroll',
+  'onWheel',
+  'onAnimationStart',
+  'onAnimationEnd',
+  'onAnimationIteration',
+  'onTransitionEnd',
+  'onToggle',
+]);
+
+const textProps = new Set([
+  'selectable',
+  'accessibilityHint',
+  'accessibilityLabel',
+  'accessible',
+  'ellipsizeMode',
+  'nativeID',
+  'numberOfLines',
+  'onLayout',
+  'onLongPress',
+  'onPress',
+  'pressRetentionOffset',
+  'allowFontScaling',
+  'style',
+  'testID',
+  'disabled',
+  'selectionColor',
+  'textBreakStrategy',
+  'adjustsFontSizeToFit',
+  'minimumFontScale',
+  'suppressHighlighting',
+]);
+
+const imageProps = new Set([
+  'blurRadius',
+  'onLayout',
+  'onLoad',
+  'onLoadEnd',
+  'onLoadStart',
+  'resizeMode',
+  'source',
+  'loadingIndicatorSource',
+  'onError',
+  'testID',
+  'resizeMethod',
+  'accessibilityLabel',
+  'accessible',
+  'capInsets',
+  'defaultSource',
+  'onPartialLoad',
+  'onProgress',
+  'fadeDuration',
+]);
+
+const listProps = new Set([
+  'renderItem',
+  'data',
+  'ItemSeparatorComponent',
+  'ListEmptyComponent',
+  'ListFooterComponent',
+  'ListHeaderComponent',
+  'columnWrapperStyle',
+  'extraData',
+  'getItemLayout',
+  'horizontal',
+  'initialNumToRender',
+  'initialScrollIndex',
+  'inverted',
+  'keyExtractor',
+  'numColumns',
+  'onEndReached',
+  'onEndReachedThreshold',
+  'onRefresh',
+  'onViewableItemsChanged',
+  'progressViewOffset',
+  'legacyImplementation',
+  'refreshing',
+  'removeClippedSubviews',
+  'viewabilityConfig',
+  'viewabilityConfigCallbackPairs',
+  'renderSectionFooter',
+  'renderSectionHeader',
+  'SectionSeparatorComponent',
+  'stickySectionHeadersEnabled',
+  'updateCellsBatchingPeriod',
+  'windowSize',
+  'disableVirtualization',
+  'getItem',
+  'getItemCount',
+  'debug',
+  'CellRendererComponent',
+  'onLayout',
+  'onScrollToIndexFailed',
+  'renderScrollComponent',
+  'maxToRenderPerBatch',
+  'alwaysBounceVertical',
+  'contentContainerStyle',
+  'keyboardDismissMode',
+  'keyboardShouldPersistTaps',
+  'onContentSizeChange',
+  'onMomentumScrollBegin',
+  'onMomentumScrollEnd',
+  'onScroll',
+  'onScrollBeginDrag',
+  'onScrollEndDrag',
+  'pagingEnabled',
+  'refreshControl',
+  'scrollEnabled',
+  'showsHorizontalScrollIndicator',
+  'showsVerticalScrollIndicator',
+  'stickyHeaderIndices',
+  'endFillColor',
+  'overScrollMode',
+  'scrollPerfTag',
+  'alwaysBounceHorizontal',
+  'automaticallyAdjustContentInsets',
+  'bounces',
+  'bouncesZoom',
+  'canCancelContentTouches',
+  'centerContent',
+  'contentInset',
+  'contentInsetAdjustmentBehavior',
+  'contentOffset',
+  'decelerationRate',
+  'directionalLockEnabled',
+  'indicatorStyle',
+  'maximumZoomScale',
+  'minimumZoomScale',
+  'pinchGestureEnabled',
+  'scrollEventThrottle',
+  'scrollIndicatorInsets',
+  'scrollsToTop',
+  'snapToAlignment',
+  'snapToInterval',
+  'snapToOffsets',
+  'snapToStart',
+  'snapToEnd',
+  'zoomScale',
+  'nestedScrollEnabled',
+]);
+
+const touchableProps = new Set([
+  'hitSlop',
+  'accessibilityComponentType',
+  'accessibilityHint',
+  'accessibilityLabel',
+  'accessibilityRole',
+  'accessibilityStates',
+  'accessibilityTraits',
+  'accessible',
+  'delayLongPress',
+  'delayPressIn',
+  'delayPressOut',
+  'disabled',
+  'onBlur',
+  'onFocus',
+  'onLayout',
+  'onLongPress',
+  'onPress',
+  'onPressIn',
+  'onPressOut',
+  'pressRetentionOffset',
+  'activeOpacity',
+  'tvParallaxProperties',
+  'hasTVPreferredFocus',
+]);
+
+const inputProps = new Set([
+  'allowFontScaling',
+  'autoCapitalize',
+  'autoCorrect',
+  'autoFocus',
+  'blurOnSubmit',
+  'caretHidden',
+  'clearButtonMode',
+  'clearTextOnFocus',
+  'contextMenuHidden',
+  'dataDetectorTypes',
+  'defaultValue',
+  'disableFullscreenUI',
+  'editable',
+  'enablesReturnKeyAutomatically',
+  'inlineImageLeft',
+  'inlineImagePadding',
+  'keyboardAppearance',
+  'keyboardType',
+  'maxLength',
+  'multiline',
+  'numberOfLines',
+  'onBlur',
+  'onChange',
+  'onChangeText',
+  'onContentSizeChange',
+  'onEndEditing',
+  'onFocus',
+  'onKeyPress',
+  'onScroll',
+  'onSelectionChange',
+  'onSubmitEditing',
+  'placeholder',
+  'placeholderTextColor',
+  'returnKeyLabel',
+  'returnKeyType',
+  'scrollEnabled',
+  'secureTextEntry',
+  'selection',
+  'selectionColor',
+  'selectionState',
+  'selectTextOnFocus',
+  'spellCheck',
+  'textContentType',
+  'style',
+  'textBreakStrategy',
+  'underlineColorAndroid',
+  'value',
+]);
+
+const makePropsFilter = (...propsSets) => {
+  const allPropsSet = new Set([]);
+  for (const set of propsSets) set.forEach((el) => allPropsSet.add(el));
+
+  return (props) => {
+    const propsCopy = {};
+    for (const key in props) if (allPropsSet.has(key)) propsCopy[key] = props[key];
+    return propsCopy;
+  };
+};
+
+export const filterProps = makePropsFilter(
+  viewProps,
+  textProps,
+  imageProps,
+  listProps,
+  touchableProps,
+  inputProps,
+  domProps
+);
+
+styled.View = styled(View, makePropsFilter(viewProps, domProps));
+styled.Text = styled(Text, makePropsFilter(textProps, domProps));
+styled.Image = styled(Image, makePropsFilter(imageProps, domProps));
+styled.ScrollView = styled(ScrollView, makePropsFilter(listProps, domProps));
+styled.FlatList = styled(FlatList, makePropsFilter(listProps, domProps));
+styled.SectionList = styled(SectionList, makePropsFilter(listProps, domProps));
+styled.TouchableWithoutFeedback = styled(
+  TouchableWithoutFeedback,
+  makePropsFilter(touchableProps, domProps)
+);
+styled.TouchableOpacity = styled(TouchableOpacity, makePropsFilter(touchableProps, domProps));
+styled.TextInput = styled(TextInput, makePropsFilter(inputProps, viewProps, textProps, domProps));
+styled.SafeAreaView = styled(SafeAreaView, makePropsFilter(viewProps, domProps));
 
 export default styled;

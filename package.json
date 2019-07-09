@@ -8,9 +8,8 @@
   "private": false,
   "source": "src/index.js",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
   "scripts": {
-    "bundle": "rm -rf ./dist && microbundle -f cjs -i src/index.cjs.js && microbundle -f es",
+    "bundle": "rm -rf ./dist && microbundle -f cjs -i src/index.cjs.js",
     "start": "microbundle watch -f cjs -i src/index.cjs.js",
     "prepublishOnly": "npm run bundle"
   },
