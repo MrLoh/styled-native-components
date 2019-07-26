@@ -105,7 +105,7 @@ Dimensions.addEventListener('change', ({ window }) => {
 });
 
 let windowDimensionListenerId = 0;
-export const useWindowDimensions = (): { width: number, height: number } => {
+export const useWindowDimensions = () /*: { width: number, height: number }*/ => {
   const [dimensions, setDimensions] = useState(initialWindowDimensions);
   useEffect(() => {
     const listenerId = windowDimensionListenerId++;
@@ -119,7 +119,7 @@ export let ThemeContext = createContext({});
 
 // resolve css template literal content into a single string, allow for props functions
 const cssCommentRegexp = new RegExp('\\/\\*[^]+?\\*\\/', 'g');
-const resolveTemplateLiteral = (strings, expressions, props): string =>
+const resolveTemplateLiteral = (strings, expressions, props) /*: string*/ =>
   strings
     .map((str, i) => {
       // resolve expressions
@@ -133,7 +133,7 @@ const resolveTemplateLiteral = (strings, expressions, props): string =>
 
 // create a RN style object from a single css declaration
 const styleObjectCache = new Map([]);
-const createStyleObject = (cssDeclaration: string): Object => {
+const createStyleObject = (cssDeclaration /*: string*/) /*: Object*/ => {
   if (!cssDeclaration) return {};
   let styleObject = styleObjectCache.get(cssDeclaration);
   if (!styleObject) {
@@ -156,7 +156,9 @@ const createStyleObject = (cssDeclaration: string): Object => {
 // create an object of RN style objects from a single css declaration
 const nestedStyleObjectsCache = new Map([]);
 const nestedDeclarationRegExp = new RegExp('\\w+\\s*\\{([^]+?)\\}', 'g');
-const createNestedStyleObject = (nestedCssDeclaration: string): { [key: string]: Object } => {
+const createNestedStyleObject = (
+  nestedCssDeclaration /*: string*/
+) /*: { [key: string]: Object }*/ => {
   let nestedStyleObjects = nestedStyleObjectsCache.get(nestedCssDeclaration);
   if (!nestedStyleObjects) {
     let mainStyleDeclaration = nestedCssDeclaration;
@@ -198,7 +200,7 @@ const resolveThemeVariables = (styleObject, theme, windowDimensions) => {
 };
 
 // generate styleSheet from nested style Object
-const useStyleSheet = (styles: { [key: string]: Object }, theme) => {
+const useStyleSheet = (styles /*: { [key: string]: Object }*/, theme) => {
   const windowDimensions = useWindowDimensions();
   return useMemo(() => {
     // we need to make sure to do a deep clone here, so that theme and viewport units can be resolved from original strings
@@ -216,7 +218,7 @@ export const ThemeProvider = ({ theme, children }) => {
 
 export const useTheme = () => useContext(ThemeContext);
 
-export const useStyle = (cssDeclaration: string) => {
+export const useStyle = (cssDeclaration /*: string*/) => {
   const theme = useContext(ThemeContext);
   const styles = useMemo(() => ({ generated: createStyleObject(cssDeclaration.trim()) }), []);
   return useStyleSheet(styles, theme).generated;
