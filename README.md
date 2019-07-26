@@ -2,6 +2,8 @@
 
 A React Native [Styled Components](https://www.styled-components.com) alternative, that supports resolving theme variables in strings and nested style definitions for `contentContainerStyle` etc.
 
+This does currently not provide a compiled output, as there are strange issues with mixed named and default exports. So make sure to compile this library with webpack, when using it in a web project.
+
 ## Documentation
 
 You should provide a theme that at least contains colors and a rem size. The color names can be referenced in your styles as well as the rem size and viewport units. When using [React Native Web](https://www.github.com/necolas/react-native-web) the rem unit will be resolved from you html font size and not parsed.

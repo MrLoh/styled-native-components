@@ -7,9 +7,9 @@
   "license": "MIT",
   "private": false,
   "source": "src/index.js",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "scripts": {
-    "bundle": "rm -rf ./dist && microbundle -f cjs -i src/index.cjs.js",
+    "bundle": "rm -rf ./dist && microbundle -f cjs -i src/index.cjs.js -o dist",
     "start": "microbundle watch -f cjs -i src/index.cjs.js",
     "prepublishOnly": "npm run bundle"
   },
