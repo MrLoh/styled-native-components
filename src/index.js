@@ -237,7 +237,7 @@ const makeTemplateFunction = (Component, transformProps, filterComponentProps) =
       let styleProps = useStyleSheet(styles, theme);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       return createElement(Component, {
-        ...filterComponentProps(transformProps(props)),
+        ...filterComponentProps(transformProps({ ...props, theme })),
         ...styleProps,
         ref,
       });
@@ -245,8 +245,8 @@ const makeTemplateFunction = (Component, transformProps, filterComponentProps) =
   } else {
     // if the cssString depends on props, we can at least ignore changes to children
     StyledComponentForwardRef = ({ children, style, ...props }, ref) => {
-      props = transformProps(props);
       const theme = useContext(ThemeContext);
+      props = transformProps({ ...props, theme });
       const cssString = useMemo(() => {
         return resolveTemplateLiteral(strings, expressions, { ...props, theme });
       }, [props, theme]);
