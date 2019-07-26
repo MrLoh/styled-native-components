@@ -232,15 +232,19 @@ const makeTemplateFunction = (Component, transformProps, filterComponentProps) =
     // if no props are used in the styles, then we can statically generate the cssString
     const cssString = resolveTemplateLiteral(strings, expressions);
     const styles = createNestedStyleObject(cssString);
-    StyledComponentForwardRef = ({ style, ...props }, ref) => {
+    StyledComponentForwardRef = ({ style, children, ...props }, ref) => {
       const theme = useContext(ThemeContext);
       let styleProps = useStyleSheet(styles, theme);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
-      return createElement(Component, {
-        ...filterComponentProps(transformProps({ ...props, theme })),
-        ...styleProps,
-        ref,
-      });
+      return createElement(
+        Component,
+        {
+          ...filterComponentProps(transformProps({ ...props, theme })),
+          ...styleProps,
+          ref,
+        },
+        children
+      );
     };
   } else {
     // if the cssString depends on props, we can at least ignore changes to children
