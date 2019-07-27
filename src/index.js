@@ -218,6 +218,15 @@ export const ThemeProvider = ({ theme, children }) => {
 
 export const useTheme = () => useContext(ThemeContext);
 
+export const withTheme = (Component) => {
+  const ComponentWithTheme = ({ children, ...props }) => {
+    const theme = useTheme();
+    return createElement(Component, { ...props, theme }, children);
+  };
+  ComponentWithTheme.displayName = `WithTheme(${Component.displayName || Component.name})`;
+  return ComponentWithTheme;
+};
+
 export const useStyle = (cssDeclaration /*: string*/) => {
   const theme = useContext(ThemeContext);
   const styles = useMemo(() => ({ generated: createStyleObject(cssDeclaration.trim()) }), []);
