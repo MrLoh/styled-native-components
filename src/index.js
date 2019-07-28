@@ -24,7 +24,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import transform from 'css-to-react-native';
+import { getPropertyName, getStylesForProperty } from 'css-to-react-native';
 
 const colorAttributes = new Set([
   'backgroundColor',
@@ -137,16 +137,17 @@ const createStyleObject = (cssDeclaration /*: string*/) /*: Object*/ => {
   if (!cssDeclaration) return {};
   let styleObject = styleObjectCache.get(cssDeclaration);
   if (!styleObject) {
-    styleObject = transform(
-      cssDeclaration
+    styleObject = Object.assign(
+      ...cssDeclaration
         .split(';')
         .map((rule) =>
           rule
             .split(':')
-            .map((value) => value.trim())
+            .map((value) => value && value.trim())
             .filter((value) => value)
         )
-        .filter((rule) => rule.length > 0)
+        .filter((rule) => rule.length === 2)
+        .map(([name, value]) => getStylesForProperty(getPropertyName(name), value))
     );
     styleObjectCache.set(cssDeclaration, styleObject);
   }
