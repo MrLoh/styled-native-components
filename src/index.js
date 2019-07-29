@@ -138,6 +138,7 @@ const createStyleObject = (cssDeclaration /*: string*/) /*: Object*/ => {
   let styleObject = styleObjectCache.get(cssDeclaration);
   if (!styleObject) {
     styleObject = Object.assign(
+      {},
       ...cssDeclaration
         .split(';')
         .map((rule) =>
