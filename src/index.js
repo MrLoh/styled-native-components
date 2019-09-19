@@ -220,6 +220,31 @@ export const ThemeProvider = ({ theme, children }) => {
 
 export const useTheme = () => useContext(ThemeContext);
 
+export const useParseLengthAttribute = (margin /*: string*/) /*number[]*/ => {
+  const theme = useTheme();
+  const windowDimensions = useWindowDimensions();
+  return useMemo(() => {
+    const parsedMargin = margin.replace(/\s\s+/g, ' ').split(' ');
+    const pixelValues = parsedMargin.map((s) => {
+      const value = Number.parseFloat(s);
+      const unit = s.trim().replace(value, '');
+      switch (unit) {
+        case 'rem':
+          return value * theme.rem;
+        case 'px':
+          return value;
+        case 'vw':
+          return value * windowDimensions.width;
+        case 'vh':
+          return value * windowDimensions.height;
+        default:
+          throw new Error(`cannot parse margin ${margin}, unknown unit ${unit}`);
+      }
+    });
+    return [0, 1, 2, 3].map((i) => pixelValues[i] || pixelValues[i - 2] || pixelValues[0] || 0);
+  }, [margin, theme.rem, windowDimensions]);
+};
+
 export const withTheme = (Component) => {
   const ComponentWithTheme = ({ children, ...props }) => {
     const theme = useTheme();
