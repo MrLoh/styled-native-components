@@ -234,9 +234,9 @@ export const useParseLengthAttribute = (margin /*: string*/) /*number[]*/ => {
         case 'px':
           return value;
         case 'vw':
-          return value * windowDimensions.width;
+          return (value * windowDimensions.width) / 100;
         case 'vh':
-          return value * windowDimensions.height;
+          return (value * windowDimensions.height) / 100;
         default:
           throw new Error(`cannot parse margin ${margin}, unknown unit ${unit}`);
       }

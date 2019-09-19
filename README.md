@@ -71,13 +71,13 @@ import {
   useParseLengthAttribute,
 } from 'styled-native-components';
 
-const Component = ({ children, margin = '20px 2rem' }) => {
+const Component = ({ children, margin = '2rem 20px 1vh' }) => {
   const style = useStyle(/*css*/ `
     color: accent;
   `);
   const theme = useTheme();
   const { width: windowWidth } = useWindowDimensions();
-  const pixelMargins = useParseLengthAttribute(margin); // [20, 2 * theme.rem]
+  const pixelMargins = useParseLengthAttribute(margin); // [2*theme.rem, 20, windowWidth/100, 20 ]
   return (
     <Text
       selectionColor={theme.colors.accent}
