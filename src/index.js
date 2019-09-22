@@ -220,27 +220,31 @@ export const ThemeProvider = ({ theme, children }) => {
 
 export const useTheme = () => useContext(ThemeContext);
 
+export const parseLengthUnit = (str /*: string*/, theme, windowDimensions) /*: number */ => {
+  const value = Number.parseFloat(str);
+  const unit = str.trim().replace(value, '');
+  switch (unit) {
+    case 'rem':
+      return value * theme.rem;
+    case 'px':
+      return value;
+    case 'vw':
+      if (!windowDimensions) throw new Error('pass windowDimensions as the 3rd argument');
+      return (value * windowDimensions.width) / 100;
+    case 'vh':
+      if (!windowDimensions) throw new Error('pass windowDimensions as the 3rd argument');
+      return (value * windowDimensions.height) / 100;
+    default:
+      throw new Error(`cannot parse length string '${str}', unknown unit ${unit}`);
+  }
+};
+
 export const useParseLengthAttribute = (margin /*: string*/) /*number[]*/ => {
   const theme = useTheme();
   const windowDimensions = useWindowDimensions();
   return useMemo(() => {
     const parsedMargin = margin.replace(/\s\s+/g, ' ').split(' ');
-    const pixelValues = parsedMargin.map((s) => {
-      const value = Number.parseFloat(s);
-      const unit = s.trim().replace(value, '');
-      switch (unit) {
-        case 'rem':
-          return value * theme.rem;
-        case 'px':
-          return value;
-        case 'vw':
-          return (value * windowDimensions.width) / 100;
-        case 'vh':
-          return (value * windowDimensions.height) / 100;
-        default:
-          throw new Error(`cannot parse margin ${margin}, unknown unit ${unit}`);
-      }
-    });
+    const pixelValues = parsedMargin.map((str) => parseLengthUnit(str, theme, windowDimensions));
     return [0, 1, 2, 3].map((i) => pixelValues[i] || pixelValues[i - 2] || pixelValues[0] || 0);
   }, [margin, theme.rem, windowDimensions]);
 };
