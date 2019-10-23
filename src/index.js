@@ -221,8 +221,11 @@ export const ThemeProvider = ({ theme, children }) => {
 export const useTheme = () => useContext(ThemeContext);
 
 export const parseLengthUnit = (str /*: string*/, theme, windowDimensions) /*: number */ => {
+  if (!str || typeof str === 'number') return str;
   const value = Number.parseFloat(str);
+  if (value === 0) return 0;
   const unit = str.trim().replace(value, '');
+  if (!unit) throw new Error(`length string '${str}' contains no unit`);
   switch (unit) {
     case 'rem':
       return value * theme.rem;
@@ -235,7 +238,7 @@ export const parseLengthUnit = (str /*: string*/, theme, windowDimensions) /*: n
       if (!windowDimensions) throw new Error('pass windowDimensions as the 3rd argument');
       return (value * windowDimensions.height) / 100;
     default:
-      throw new Error(`cannot parse length string '${str}', unknown unit ${unit}`);
+      throw new Error(`cannot parse length string '${str}', unknown unit '${unit}'`);
   }
 };
 
@@ -245,7 +248,13 @@ export const useParseLengthAttribute = (margin /*: string*/) /*number[]*/ => {
   return useMemo(() => {
     const parsedMargin = margin.replace(/\s\s+/g, ' ').split(' ');
     const pixelValues = parsedMargin.map((str) => parseLengthUnit(str, theme, windowDimensions));
-    return [0, 1, 2, 3].map((i) => pixelValues[i] || pixelValues[i - 2] || pixelValues[0] || 0);
+    return [0, 1, 2, 3].map((i) =>
+      pixelValues[i] !== undefined
+        ? pixelValues[i]
+        : pixelValues[i - 2] !== undefined
+        ? pixelValues[i - 2]
+        : pixelValues[0] || 0
+    );
   }, [margin, theme.rem, windowDimensions]);
 };
 
