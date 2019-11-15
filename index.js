@@ -183,6 +183,12 @@ const createNestedStyleObject = (
 const plattformIsWeb = Platform.OS === 'web';
 const resolveThemeVariables = (styleObject, theme, windowDimensions) => {
   for (const key in styleObject) {
+    if (key === 'elevation' && theme.shadow) {
+      const shadowStyleObject = theme.shadow(styleObject[key]);
+      for (const shadowKey in shadowStyleObject) {
+        styleObject[shadowKey] = shadowStyleObject[shadowKey];
+      }
+    }
     // resolve all color names to theme variables if possible
     if (colorAttributes.has(key) && styleObject[key] in theme.colors) {
       styleObject[key] = theme.colors[styleObject[key]];
