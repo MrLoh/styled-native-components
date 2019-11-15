@@ -6,29 +6,23 @@
   "author": "@MrLoh",
   "license": "MIT",
   "private": false,
-  "source": "src/index.js",
-  "main": "src/index.js",
-  "scripts": {
-    "bundle": "rm -rf ./dist && microbundle -f cjs -i src/index.cjs.js -o dist",
-    "start": "microbundle watch -f cjs -i src/index.cjs.js",
-    "prepublishOnly": "npm run bundle"
-  },
+  "source": "index.js",
+  "main": "index.js",
   "dependencies": {
-    "css-to-react-native": "^2.3.1"
+    "css-to-react-native": "2.3.1"
   },
   "peerDependencies": {
     "react": ">= 16.8.0",
     "react-native": ">= 0.59.0"
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.2",
-    "eslint": "^6.0.1",
-    "eslint-plugin-react": "^7.14.2",
-    "eslint-plugin-react-hooks": "^1.6.1",
-    "eslint-plugin-react-native": "^3.7.0",
-    "eslint-plugin-react-perf": "^3.2.0",
-    "microbundle": "^0.11.0",
-    "prettier": "^1.18.2"
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.6.0",
+    "eslint-plugin-react": "^7.16.0",
+    "eslint-plugin-react-hooks": "^2.3.0",
+    "eslint-plugin-react-native": "^3.8.1",
+    "eslint-plugin-react-perf": "^3.2.3",
+    "prettier": "^1.19.1"
   },
   "prettier": {
     "printWidth": 100,
