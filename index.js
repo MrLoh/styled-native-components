@@ -42,18 +42,14 @@ const colorAttributes = new Set([
 const lengthAttributes = new Set([
   'width',
   'height',
-  'borderBottomEndRadius',
   'borderBottomLeftRadius',
   'borderBottomRightRadius',
-  'borderBottomStartRadius',
+  'borderTopLeftRadius',
+  'borderTopRightRadius',
   'borderBottomWidth',
   'borderLeftWidth',
   'borderRadius',
   'borderRightWidth',
-  'borderTopEndRadius',
-  'borderTopLeftRadius',
-  'borderTopRightRadius',
-  'borderTopStartRadius',
   'borderTopWidth',
   'borderWidth',
   'flexBasis',
@@ -183,10 +179,11 @@ const createNestedStyleObject = (
 const plattformIsWeb = Platform.OS === 'web';
 const resolveThemeVariables = (styleObject, theme, windowDimensions) => {
   for (const key in styleObject) {
-    if (key === 'elevation' && theme.shadow) {
-      const shadowStyleObject = theme.shadow(styleObject[key]);
-      for (const shadowKey in shadowStyleObject) {
-        styleObject[shadowKey] = shadowStyleObject[shadowKey];
+    if (theme.customCss && key in theme.customCss) {
+      const customStyleObject = theme.customCss[key](styleObject[key]);
+      delete styleObject[key];
+      for (const k in customStyleObject) {
+        styleObject[k] = customStyleObject[k];
       }
     }
     // resolve all color names to theme variables if possible
