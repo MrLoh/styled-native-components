@@ -1,6 +1,6 @@
 {
   "name": "styled-native-components",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Styled components like lib for react-native(-web)",
   "repository": "https://github.com/MrLoh/styled-native-components",
   "author": "@MrLoh",
