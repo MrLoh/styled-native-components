@@ -6,19 +6,27 @@ This does currently not provide a compiled output, as there are strange issues w
 
 ## Documentation
 
-You should provide a theme that at least contains colors and a rem size. The color names can be referenced in your styles as well as the rem size and viewport units. When using [React Native Web](https://www.github.com/necolas/react-native-web) the rem unit will be resolved from you html font size and not parsed.
+You should provide a theme that at least contains colors and a rem size. The color names can be referenced in your styles as well as the rem size and viewport units. When using [React Native Web](https://www.github.com/necolas/react-native-web) the rem unit will be resolved from you html font size and not parsed. You can also specify an elevation function that transforms elevation styles to shadow styles.
 
 ```js
 import { ThemeProvider } from 'styled-native-components';
 
 const App = () => {
   const theme = {
+    rem: 8,
     colors: {
       accent: '#11C5D9',
       background: '#141417',
       text: '#D2D2D6',
     },
-    rem: 8,
+    elevation: (value) => ({
+      shadowColor: 'black',
+      shadowOffset: { width: 0, height: value },
+      shadowRadius: value * 2.5,
+      shadowOpacity: 0.3,
+      elevation: value,
+      zIndex: value,
+    }),
   };
   return (
     <ThemeProvider theme={theme}>
@@ -36,6 +44,7 @@ import styled from 'styled-native-components';
 const SimpleComponent = styled.Component`
   padding: 1rem 0;
   width: 80vw;
+  elevation: 2;
 `;
 
 const CustomComponent = styled(Component)`
@@ -58,31 +67,6 @@ const NestedStyleComponent = styled.ScrollView`
   contentContainer {
     padding: 1rem 2rem;
   }
-`;
-```
-
-You can specify custom functions in your theme to overwrite/create CSS properties:
-
-```js
-const theme = {
-  customCss: {
-    elevation: (value) => ({
-      shadowColor: 'black',
-      shadowOffset: { width: 0, height: parseFloat(value) },
-      shadowRadius: parseFloat(value) * 2,
-      shadowOpacity: 0.3,
-      elevation: parseFloat(value),
-      zIndex: parseFloat(value),
-    }),
-    rounding: (value) => ({
-      borderRadius: [0, 2, 4, 8, 16, 32][parseInt(value, 10)],
-    }),
-  },
-};
-
-const ElevatedComponent = styled.View`
-  elevation: 2;
-  rounding: 3;
 `;
 ```
 
