@@ -1,12 +1,68 @@
 # styled-native-components
 
-A React Native [Styled Components](https://www.styled-components.com) alternative, that supports resolving theme variables in strings and nested style definitions for `contentContainerStyle` etc.
+A [Styled Components](https://www.styled-components.com) alternative for React Native (Web), that supports variables, nested style definitions for `contentContainerStyle`, and web centric CSS concepts ported to React Native Web.
 
-This does currently not provide a compiled output, as there are strange issues with mixed named and default exports. So make sure to compile this library with webpack, when using it in a web project.
+## Disclaimer
+
+This library does not provide a compiled output, as there are strange issues with mixed named and default exports. So make sure to compile this library with webpack, when using it in a web project.
+
+This library is mainly for internal use until release of `v1.0.0`, there might be breaking changes at any time. If you don't need backwards compatibility with Styled-Components, I'd recommend using [Cssta](https://jacobp100.github.io/cssta) instead.
 
 ## Documentation
 
-You should provide a theme that at least contains colors and a rem size. The color names can be referenced in your styles as well as the rem size and viewport units. When using [React Native Web](https://www.github.com/necolas/react-native-web) the rem unit will be resolved from you html font size and not parsed. You can also specify an elevation function that transforms elevation styles to shadow styles.
+#### Basics
+
+The basic API is equivalent with Styled Components, but supports some CSS features like `rem` and viewport (`vw`, `vh`) units.
+
+```js
+import styled from 'styled-native-components';
+
+const SimpleComponent = styled.Component`
+  padding: 1rem 0;
+  width: 80vw;
+  elevation: 2;
+`;
+
+const CustomComponent = styled(Component)`
+  padding: 1rem 0;
+`;
+
+const PropsBasedComponent = styled(Component)`
+  padding: 1rem 0;
+  background-color: ${(p) => (p.active ? '$accent' : '$background')};
+`;
+
+const ComponentWithAttributes = styled.selectionColor.attrs((p) => ({
+  selectionColor: p.theme.colors.accent,
+}))`
+  color: $text;
+`;
+
+const NestedStyleComponent = styled.ScrollView`
+  background-color: $background;
+  contentContainer {
+    padding: 1rem 2rem;
+  }
+`;
+```
+
+#### Theming
+
+As seen above the library enables usage of `$` prefixed variables in your CSS.
+
+You have to distinguish between two types of variables: (1) static variables that can be resolved at compile time, (2) dynamic variables that may change during runtime for example when switching to dark mode.
+
+Static variables must be set first thing in you code, by calling the `setStaticVariables` function. The value of a static variable must be a valid CSS string.
+
+```js
+import { setStaticVariables } from 'styled-native-components';
+
+setStaticVariables({
+  borderRadius: '1rem',
+});
+```
+
+Dynamic variables are provided through a theme context. Allowed dynamic variables are `colors` and the `rem` size (When running on web, the rem size will be handled like usual on the web). You can also specify an elevation function that transforms an elevation value to shadow styles. The theme context will also contain the static variables under `theme.variables` for use with `attrs` or `useTheme`.
 
 ```js
 import { ThemeProvider } from 'styled-native-components';
@@ -36,39 +92,16 @@ const App = () => {
 };
 ```
 
-The basic API is equivalent with Styled Components:
+You may also overwrite the theme context to use an existing styled components theme context:
 
 ```js
-import styled from 'styled-native-components';
+import { setThemeContext } from 'styled-native-components';
+import { ThemeContext } from 'styled-components';
 
-const SimpleComponent = styled.Component`
-  padding: 1rem 0;
-  width: 80vw;
-  elevation: 2;
-`;
-
-const CustomComponent = styled(Component)`
-  padding: 1rem 0;
-`;
-
-const PropsBasedComponent = styled(Component)`
-  padding: 1rem 0;
-  background-color: ${(p) => (p.active ? 'accent' : 'background')};
-`;
-
-const ComponentWithAttributes = styled.selectionColor.attrs((p) => ({
-  selectionColor: p.theme.colors.accent,
-}))`
-  color: text;
-`;
-
-const NestedStyleComponent = styled.ScrollView`
-  background-color: background;
-  contentContainer {
-    padding: 1rem 2rem;
-  }
-`;
+setThemeContext(ThemeContext);
 ```
+
+#### Hooks
 
 There are also some hooks available:
 
@@ -77,20 +110,22 @@ import {
   useStyle,
   useTheme,
   useWindowDimensions,
-  useParseLengthAttribute,
+  useLengthAttribute,
+  useColorAttribute,
 } from 'styled-native-components';
 
 const Component = ({ children, margin = '2rem 20px 1vh' }) => {
   const style = useStyle(/*css*/ `
-    color: accent;
+    color: $accent;
   `);
   const theme = useTheme();
   const { width: windowWidth } = useWindowDimensions();
-  const pixelMargins = useParseLengthAttribute(margin); // [2*theme.rem, 20, windowWidth/100, 20 ]
+  const pixelMargins = useLengthAttribute(margin); // [2*theme.rem, 20, windowWidth/100, 20 ]
+  const selectionColor = useColorAttribute('$selection');
   return (
     <Text
-      selectionColor={theme.colors.accent}
-      style={style}
+      selectionColor={selectionColor}
+      style={[style, { marginRight: theme.rem }]}
       numberOfLines={windowWidth < 400 ? 2 : 1}
     >
       {children}
@@ -111,13 +146,4 @@ class Component extends React.Component {
     return <Text selectionColor={this.context.colors.accent}>{this.props.children}</Text>;
   };
 }
-```
-
-You can also overwrite the theme context to use an existing one:
-
-```js
-import { setThemeContext } from 'styled-native-components';
-import { ThemeContext } from 'styled-components';
-
-setThemeContext(ThemeContext);
 ```

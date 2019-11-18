@@ -131,7 +131,36 @@ const resolveTemplateLiteral = (strings, expressions, props) /*: string*/ =>
     // remove comments
     .replace(cssCommentRegexp, '');
 
+// set variables that can be statically resolved at compile time
+let staticVariables = new Map([]);
+let variables;
+export const setStaticVariables = (vars /*: { [name: string]: string }*/) => {
+  variables = vars;
+  Object.entries(vars).forEach(([name, value]) => {
+    staticVariables.set(`$${name}`, value);
+  });
+};
+
+// css-to-react-native only supports proper css color values, so we must resolve variables
+// before parsing, and thus register those theme variables statically. To later resolve
+// colors dynamically from the theme, we map them to transparent hex values that we then
+// resolve back to the actual colors from the theme for rendering
+let currentColorId = 1;
+let themeColors = { hexForVarName: new Map([]), nameForHex: new Map([]) };
+const resolveColorVariablePlaceholder = (variableName) => {
+  if (!themeColors.hexForVarName.has(variableName)) {
+    const hexPlaceholder = `#${(currentColorId++)
+      .toString(16)
+      .padStart(6, '0')
+      .toUpperCase()}00`;
+    themeColors.hexForVarName.set(variableName, hexPlaceholder);
+    themeColors.nameForHex.set(hexPlaceholder, variableName.substring(1));
+  }
+  return themeColors.hexForVarName.get(variableName);
+};
+
 // create a RN style object from a single css declaration
+const variableRegexp = new RegExp('\\$[\\w|-]+', 'g');
 const styleObjectCache = new Map([]);
 const createStyleObject = (cssDeclaration /*: string*/) /*: Object*/ => {
   if (!cssDeclaration) return {};
@@ -148,7 +177,13 @@ const createStyleObject = (cssDeclaration /*: string*/) /*: Object*/ => {
             .filter((value) => value)
         )
         .filter((rule) => rule.length === 2)
-        .map(([name, value]) => getStylesForProperty(getPropertyName(name), value))
+        .map(([name, value]) => {
+          const resolvedValue = value.replace(variableRegexp, (variable) => {
+            if (staticVariables.has(variable)) return staticVariables.get(variable);
+            else return resolveColorVariablePlaceholder(variable);
+          });
+          return getStylesForProperty(getPropertyName(name), resolvedValue);
+        })
     );
     styleObjectCache.set(cssDeclaration, styleObject);
   }
@@ -190,8 +225,20 @@ const resolveThemeVariables = (styleObject, theme, windowDimensions) => {
       }
     }
     // resolve all color names to theme variables if possible
-    if (colorAttributes.has(key) && styleObject[key] in theme.colors) {
-      styleObject[key] = theme.colors[styleObject[key]];
+    if (colorAttributes.has(key)) {
+      const colorName = themeColors.nameForHex.get(styleObject[key]);
+      if (colorName) {
+        if (colorName in theme.colors) {
+          styleObject[key] = theme.colors[colorName];
+        } else {
+          throw new Error(`the color variable '$${colorName}' has not been defined in the theme.`);
+        }
+      }
+      // TODO: remove after migrating all color variables
+      if (styleObject[key] in theme.colors) {
+        console.warn(`color variable '${styleObject[key]}' should be prefixed with '$'`);
+        styleObject[key] = theme.colors[styleObject[key]];
+      }
     }
     // resolve all rem and viewport units if not on web where they are supported
     if (!plattformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
@@ -224,7 +271,10 @@ export const ThemeProvider = ({ theme, children }) => {
   return createElement(ThemeContext.Provider, { value: theme }, children);
 };
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const theme = useContext(ThemeContext);
+  return useMemo(() => ({ ...theme, variables }), [theme]);
+};
 
 export const parseLengthUnit = (str /*: string*/, theme, windowDimensions) /*: number */ => {
   if (!str || typeof str === 'number') return str;
@@ -248,7 +298,7 @@ export const parseLengthUnit = (str /*: string*/, theme, windowDimensions) /*: n
   }
 };
 
-export const useParseLengthAttribute = (margin /*: string*/) /*number[]*/ => {
+export const useLengthAttribute = (margin /*: string*/) /*number[]*/ => {
   const theme = useTheme();
   const windowDimensions = useWindowDimensions();
   return useMemo(() => {
@@ -262,6 +312,15 @@ export const useParseLengthAttribute = (margin /*: string*/) /*number[]*/ => {
         : pixelValues[0] || 0
     );
   }, [margin, theme.rem, windowDimensions]);
+};
+
+export const useColorAttribute = (color /*: string*/) /*: string*/ => {
+  const theme = useTheme();
+  return color in theme.colors
+    ? theme.colors[color]
+    : color.substring(1) in theme.colors
+    ? theme.colors[color.substring(1)]
+    : color;
 };
 
 export const withTheme = (Component) => {

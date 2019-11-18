@@ -9,7 +9,7 @@
   "source": "index.js",
   "main": "index.js",
   "dependencies": {
-    "css-to-react-native": "2.3.1"
+    "css-to-react-native": "^3.0.0"
   },
   "peerDependencies": {
     "react": ">= 16.8.0",
