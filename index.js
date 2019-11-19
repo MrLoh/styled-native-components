@@ -319,7 +319,7 @@ export const useColorAttribute = (color /*: string*/) /*: string*/ => {
   const theme = useTheme();
   return color in theme.colors
     ? theme.colors[color]
-    : color.substring(1) in theme.colors
+    : color && color.substring(1) in theme.colors
     ? theme.colors[color.substring(1)]
     : color;
 };
@@ -334,7 +334,7 @@ export const withTheme = (Component) => {
 };
 
 export const useStyle = (cssDeclaration /*: string*/) => {
-  const theme = useContext(ThemeContext);
+  const theme = useTheme();
   const styles = useMemo(() => ({ generated: createStyleObject(cssDeclaration.trim()) }), []);
   return useStyleSheet(styles, theme).generated;
 };
@@ -350,7 +350,7 @@ const makeTemplateFunction = (Component, transformProps, filterComponentProps) =
     const cssString = resolveTemplateLiteral(strings, expressions);
     const styles = createNestedStyleObject(cssString);
     StyledComponentForwardRef = ({ style, children, ...props }, ref) => {
-      const theme = useContext(ThemeContext);
+      const theme = useTheme();
       let styleProps = useStyleSheet(styles, theme);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       return createElement(
@@ -366,7 +366,7 @@ const makeTemplateFunction = (Component, transformProps, filterComponentProps) =
   } else {
     // if the cssString depends on props, we can at least ignore changes to children
     StyledComponentForwardRef = ({ children, style, ...props }, ref) => {
-      const theme = useContext(ThemeContext);
+      const theme = useTheme();
       props = transformProps({ ...props, theme });
       const cssString = useMemo(() => {
         return resolveTemplateLiteral(strings, expressions, { ...props, theme });
