@@ -224,6 +224,7 @@ const resolveThemeVariables = (styleObject, theme, windowDimensions) => {
         styleObject[shadowKey] = shadowStyleObject[shadowKey];
       }
     }
+    if (key === 'cursor' && Platform !== 'web') delete styleObject.cursor;
     // resolve all color names to theme variables if possible
     if (colorAttributes.has(key)) {
       const colorName = themeColors.nameForHex.get(styleObject[key]);
