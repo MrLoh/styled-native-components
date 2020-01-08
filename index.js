@@ -535,6 +535,7 @@ const textProps = new Set([
   'adjustsFontSizeToFit',
   'minimumFontScale',
   'suppressHighlighting',
+  'pointerEvents',
 ]);
 
 const imageProps = new Set([
@@ -556,6 +557,7 @@ const imageProps = new Set([
   'onPartialLoad',
   'onProgress',
   'fadeDuration',
+  'pointerEvents',
 ]);
 
 const listProps = new Set([
@@ -643,6 +645,7 @@ const listProps = new Set([
   'snapToEnd',
   'zoomScale',
   'nestedScrollEnabled',
+  'pointerEvents',
 ]);
 
 const touchableProps = new Set([
@@ -669,6 +672,7 @@ const touchableProps = new Set([
   'activeOpacity',
   'tvParallaxProperties',
   'hasTVPreferredFocus',
+  'pointerEvents',
 ]);
 
 const inputProps = new Set([
