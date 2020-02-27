@@ -38,6 +38,7 @@ const colorAttributes = new Set([
   'borderStartColor',
   'borderTopColor',
   'shadowColor',
+  'textDecorationColor',
 ]);
 const lengthAttributes = new Set([
   'width',
