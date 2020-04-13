@@ -8,6 +8,7 @@ import {
   memo,
   createElement,
   createContext,
+  Children,
 } from 'react';
 import {
   View,
@@ -270,7 +271,14 @@ const useStyleSheet = (styles /*: { [key: string]: Object }*/, theme) => {
 };
 
 export const ThemeProvider = ({ theme, children }) => {
-  return createElement(ThemeContext.Provider, { value: theme }, children);
+  return createElement(ThemeContext.Provider, { value: theme }, [
+    Platform.OS === 'web'
+      ? createElement('style', {
+          dangerouslySetInnerHTML: { __html: `html { font-size: ${theme.rem}px }` },
+        })
+      : null,
+    ...Children.toArray(children),
+  ]);
 };
 
 export const useTheme = () => {
