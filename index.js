@@ -564,6 +564,7 @@ const imageProps = new Set([
 const listProps = new Set([
   'renderItem',
   'data',
+  'sections',
   'ItemSeparatorComponent',
   'ListEmptyComponent',
   'ListFooterComponent',
