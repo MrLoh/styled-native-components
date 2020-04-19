@@ -275,6 +275,7 @@ export const ThemeProvider = ({ theme, children }) => {
     Platform.OS === 'web'
       ? createElement('style', {
           dangerouslySetInnerHTML: { __html: `html { font-size: ${theme.rem}px }` },
+          key: 'global_rem_style',
         })
       : null,
     ...Children.toArray(children),
