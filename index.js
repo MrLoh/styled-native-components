@@ -274,8 +274,27 @@ export const ThemeProvider = ({ theme, children }) => {
   return createElement(ThemeContext.Provider, { value: theme }, [
     Platform.OS === 'web'
       ? createElement('style', {
-          dangerouslySetInnerHTML: { __html: `html { font-size: ${theme.rem}px }` },
-          key: 'global_rem_style',
+          dangerouslySetInnerHTML: {
+            __html: `
+              html,
+              body,
+              #root {
+                font-family: -apple-system, Roboto, sans-serif;
+                min-height: 100%;
+                background: ${theme.colors.background || 'white'};
+                font-size: ${theme.rem}px;
+              }
+              #root {
+                display: flex;
+              }
+              textarea,
+              select,
+              input {
+                outline: none;
+              }
+            `,
+          },
+          key: 'global_style',
         })
       : null,
     ...Children.toArray(children),
