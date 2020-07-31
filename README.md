@@ -1,10 +1,8 @@
 # styled-native-components
 
-A [Styled Components](https://www.styled-components.com) alternative for React Native (Web), that supports variables, nested style definitions for `contentContainerStyle`, and web centric CSS concepts ported to React Native Web.
+A [Styled Components](https://www.styled-components.com) alternative for React Native (Web), that supports color variables, rem, vh, vw, nested style definitions for `contentContainerStyle`, and web centric CSS concepts ported to React Native Web.
 
 ## Disclaimer
-
-This library does not provide a compiled output, as there are strange issues with mixed named and default exports. So make sure to compile this library with webpack, when using it in a web project.
 
 This library is mainly for internal use until release of `v1.0.0`, there might be breaking changes at any time. If you don't need backwards compatibility with Styled-Components, I'd recommend using [Cssta](https://jacobp100.github.io/cssta) instead.
 
@@ -48,21 +46,9 @@ const NestedStyleComponent = styled.ScrollView`
 
 #### Theming
 
-As seen above the library enables usage of `$` prefixed variables in your CSS.
+As seen above the library enables usage of `$` prefixed color variables in your CSS.
 
-You have to distinguish between two types of variables: (1) static variables that can be resolved at compile time, (2) dynamic variables that may change during runtime for example when switching to dark mode.
-
-Static variables must be set first thing in you code, by calling the `setStaticVariables` function. The value of a static variable must be a valid CSS string.
-
-```js
-import { setStaticVariables } from 'styled-native-components';
-
-setStaticVariables({
-  borderRadius: '1rem',
-});
-```
-
-Dynamic variables are provided through a theme context. Allowed dynamic variables are `colors` and the `rem` size (When running on web, the rem size will be handled like usual on the web). You can also specify an elevation function that transforms an elevation value to shadow styles. The theme context will also contain the static variables under `theme.variables` for use with `attrs` or `useTheme`.
+The color variables are provided as a color object through the theme context. Additionally a `rem` variable is supported (When running on web, the rem size will be handled like usual based on the root font size). You can also specify an elevation function that transforms an elevation value to shadow styles.
 
 ```js
 import { ThemeProvider } from 'styled-native-components';
@@ -103,7 +89,7 @@ setThemeContext(ThemeContext);
 
 #### Hooks
 
-There are also some hooks available:
+There are some hooks available:
 
 ```js
 import {
@@ -146,4 +132,83 @@ class Component extends React.Component {
     return <Text selectionColor={this.context.colors.accent}>{this.props.children}</Text>;
   };
 }
+```
+
+#### Typescript
+
+The library is fully typed. You can set the Theme Context by redeclaring the `DefaultTheme` interface of this library the same way you would do for the original styled components library. Your default theme should implement the following interfact:
+
+```ts
+interface ThemeInterface {
+  rem: number;
+  colors: { [key: string]: string };
+  elevation: (value: number) => Style;
+}
+```
+
+All you do is to put something like this where you define your theme.
+
+```tsx
+import { ThemeProvider } from 'styled-native-components';
+import type { DefaultTheme } from 'styled-native-components';
+
+declare module 'styled-native-components' {
+  export interface DefaultTheme {
+    rem: number;
+    colors: {
+      accent: string;
+      background: string;
+      text: string;
+    };
+    elevation: (value: number) => Style;
+    darkMode?: boolean;
+  }
+}
+
+const App = () => {
+  const darkMode = useDarMode();
+  const theme: DefaultTheme = {
+    rem: 8,
+    colors: {
+      accent: 'seagreen',
+      background: darkMode ? '#222' : 'white',
+      text: darkMode ? 'white' : 'black',
+    },
+    elevation: (value) => ({
+      shadowColor: 'black',
+      shadowOffset: { width: 0, height: value },
+      shadowRadius: value * 2.5,
+      shadowOpacity: darkMode ? 0.8 : 0.3,
+      elevation: value,
+      zIndex: value,
+    }),
+    darkMode,
+  };
+  return (
+    <ThemeProvider theme={theme}>
+      <AppComponent />
+    </ThemeProvider>
+  );
+};
+```
+
+When you then declare components, you can define the props that may be passed to them explicitly:
+
+```tsx
+const Wrapper = styled.View<{ margin: string }>`
+  margin: ${(p) => p.margin};
+  padding: 2rem;
+  elevation: 2;
+  background-color: $background;
+`;
+
+const MyComponent = ({
+  margin = '1rem',
+  children,
+}: {
+  margin?: string;
+  children: React.ReactNode;
+}) => {
+  return <Wrapper margin={margin}>{children}</Wrapper>;
+};
 ```

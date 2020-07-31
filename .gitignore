@@ -1,4 +1,4 @@
-yarn-error.log
+*.log
 node_modules
 .DS_Store
 dist
