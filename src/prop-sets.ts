@@ -1,21 +1,46 @@
 import type {
   ViewProps,
-  // TextProps,
-  // TextInputProps,
-  // PressableProps,
-  // VirtualizedListProps,
+  TextProps,
+  ImageProps,
+  VirtualizedListProps,
+  TextInputProps,
+  PressableProps,
+  AccessibilityProps,
+  TouchableOpacityProps,
 } from 'react-native';
+
+type AccessibilityPropName = keyof AccessibilityProps;
+const accessibilityPropNames = [
+  'accessible',
+  'accessibilityActions',
+  'accessibilityLabel',
+  'accessibilityRole',
+  'accessibilityState',
+  'accessibilityHint',
+  'accessibilityValue',
+  'onAccessibilityAction',
+  'accessibilityComponentType',
+  'accessibilityLiveRegion',
+  'importantForAccessibility',
+  'accessibilityElementsHidden',
+  'accessibilityTraits',
+  'accessibilityViewIsModal',
+  'onAccessibilityEscape',
+  'onAccessibilityTap',
+  'onMagicTap',
+  'accessibilityIgnoresInvertColors',
+] as const;
+// this ensures that we get typescript errors if a key from ViewProps is missing
+const accessibilityPropNamesWithEnsuredCompleteKeys: readonly typeof accessibilityPropNames[number][] = accessibilityPropNames as readonly AccessibilityPropName[];
 
 type ViewPropName = keyof ViewProps;
 const viewPropNames = [
+  'style',
+  ...accessibilityPropNamesWithEnsuredCompleteKeys,
   'onStartShouldSetResponder',
-  'accessibilityLabel',
-  'accessibilityHint',
   'hitSlop',
   'nativeID',
-  'onAccessibilityTap',
   'onLayout',
-  'onMagicTap',
   'onMoveShouldSetResponder',
   'onMoveShouldSetResponderCapture',
   'onResponderGrant',
@@ -24,31 +49,20 @@ const viewPropNames = [
   'onResponderRelease',
   'onResponderTerminate',
   'onResponderTerminationRequest',
-  'accessible',
   'onStartShouldSetResponderCapture',
   'pointerEvents',
   'removeClippedSubviews',
   'testID',
-  'accessibilityComponentType',
-  'accessibilityLiveRegion',
   'collapsable',
-  'importantForAccessibility',
   'needsOffscreenAlphaCompositing',
   'renderToHardwareTextureAndroid',
-  'accessibilityRole',
-  'accessibilityTraits',
-  'accessibilityViewIsModal',
-  'accessibilityElementsHidden',
-  'accessibilityIgnoresInvertColors',
   'shouldRasterizeIOS',
-  'style',
   'focusable',
   'isTVSelectable',
   'hasTVPreferredFocus',
   'tvParallaxProperties',
   'tvParallaxShiftDistanceX',
   'tvParallaxShiftDistanceY',
-  'tvParallaxTiltAngle',
   'tvParallaxTiltAngle',
   'tvParallaxMagnification',
   'onResponderEnd',
@@ -58,22 +72,16 @@ const viewPropNames = [
   'onTouchEnd',
   'onTouchCancel',
   'onTouchEndCapture',
-  'accessibilityActions',
-  'accessibilityState',
-  'accessibilityValue',
-  'onAccessibilityAction',
-  'onAccessibilityEscape',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
 const viewPropNamesWithEnsuredCompleteKeys: readonly typeof viewPropNames[number][] = viewPropNames as readonly ViewPropName[];
 export const viewProps = new Set(viewPropNamesWithEnsuredCompleteKeys);
 
-// type TextPropName = keyof TextProps;
-export const textProps = new Set([
+type TextPropName = keyof TextProps;
+const textPropNames = [
+  'style',
+  ...accessibilityPropNamesWithEnsuredCompleteKeys,
   'selectable',
-  'accessibilityHint',
-  'accessibilityLabel',
-  'accessible',
   'ellipsizeMode',
   'nativeID',
   'numberOfLines',
@@ -82,7 +90,6 @@ export const textProps = new Set([
   'onPress',
   'pressRetentionOffset',
   'allowFontScaling',
-  'style',
   'testID',
   'disabled',
   'selectionColor',
@@ -91,9 +98,27 @@ export const textProps = new Set([
   'minimumFontScale',
   'suppressHighlighting',
   'pointerEvents',
-]);
+  'lineBreakMode',
+  'maxFontSizeMultiplier',
+] as const;
+// this ensures that we get typescript errors if a key from ViewProps is missing
+const textPropNamesWithEnsuredCompleteKeys: readonly typeof textPropNames[number][] = textPropNames as readonly TextPropName[];
+export const textProps = new Set(textPropNamesWithEnsuredCompleteKeys);
 
-export const imageProps = new Set([
+// we don't want props that may conflict with styles
+type ImagePropName = Exclude<
+  keyof ImageProps,
+  | 'borderRadius'
+  | 'borderTopLeftRadius'
+  | 'borderTopRightRadius'
+  | 'borderBottomLeftRadius'
+  | 'borderBottomRightRadius'
+  | 'width'
+  | 'height'
+>;
+const imagePropNames = [
+  'style',
+  ...accessibilityPropNamesWithEnsuredCompleteKeys,
   'blurRadius',
   'onLayout',
   'onLoad',
@@ -105,17 +130,25 @@ export const imageProps = new Set([
   'onError',
   'testID',
   'resizeMethod',
-  'accessibilityLabel',
-  'accessible',
   'capInsets',
   'defaultSource',
   'onPartialLoad',
   'onProgress',
   'fadeDuration',
   'pointerEvents',
-]);
+  'progressiveRenderingEnabled',
+] as const;
+// this ensures that we get typescript errors if a key from ViewProps is missing
+const imagePropNamesWithEnsuredCompleteKeys: readonly typeof imagePropNames[number][] = imagePropNames as readonly ImagePropName[];
+export const imageProps = new Set(imagePropNamesWithEnsuredCompleteKeys);
 
-export const listProps = new Set([
+type ListPropName = keyof VirtualizedListProps<any>;
+const listPropNames = [
+  ...viewPropNamesWithEnsuredCompleteKeys,
+  'columnWrapperStyle',
+  'contentContainerStyle',
+  'indicatorStyle',
+  ...accessibilityPropNamesWithEnsuredCompleteKeys,
   'renderItem',
   'data',
   'sections',
@@ -123,7 +156,6 @@ export const listProps = new Set([
   'ListEmptyComponent',
   'ListFooterComponent',
   'ListHeaderComponent',
-  'columnWrapperStyle',
   'extraData',
   'getItemLayout',
   'horizontal',
@@ -132,7 +164,6 @@ export const listProps = new Set([
   'inverted',
   'keyExtractor',
   'numColumns',
-  'testID',
   'onEndReached',
   'onEndReachedThreshold',
   'onRefresh',
@@ -140,7 +171,6 @@ export const listProps = new Set([
   'progressViewOffset',
   'legacyImplementation',
   'refreshing',
-  'removeClippedSubviews',
   'viewabilityConfig',
   'viewabilityConfigCallbackPairs',
   'renderSectionFooter',
@@ -154,12 +184,10 @@ export const listProps = new Set([
   'getItemCount',
   'debug',
   'CellRendererComponent',
-  'onLayout',
   'onScrollToIndexFailed',
   'renderScrollComponent',
   'maxToRenderPerBatch',
   'alwaysBounceVertical',
-  'contentContainerStyle',
   'keyboardDismissMode',
   'keyboardShouldPersistTaps',
   'onContentSizeChange',
@@ -188,7 +216,6 @@ export const listProps = new Set([
   'contentOffset',
   'decelerationRate',
   'directionalLockEnabled',
-  'indicatorStyle',
   'maximumZoomScale',
   'minimumZoomScale',
   'pinchGestureEnabled',
@@ -202,38 +229,24 @@ export const listProps = new Set([
   'snapToEnd',
   'zoomScale',
   'nestedScrollEnabled',
-  'pointerEvents',
-]);
+  'listKey',
+  'invertStickyHeaders',
+  'disableIntervalMomentum',
+  'disableScrollViewPanResponder',
+  'onScrollAnimationEnd',
+  'scrollToOverflowEnabled',
+  'onScrollToTop',
+  'fadingEdgeLength',
+  'persistentScrollbar',
+] as const;
+// this ensures that we get typescript errors if a key from ViewProps is missing
+const listPropNamesWithEnsuredCompleteKeys: readonly typeof listPropNames[number][] = listPropNames as readonly ListPropName[];
+export const listProps = new Set(listPropNamesWithEnsuredCompleteKeys);
 
-export const pressableProps = new Set([
-  'hitSlop',
-  'accessibilityComponentType',
-  'accessibilityHint',
-  'accessibilityLabel',
-  'accessibilityRole',
-  'accessibilityStates',
-  'accessibilityTraits',
-  'accessible',
-  'delayLongPress',
-  'delayPressIn',
-  'delayPressOut',
-  'disabled',
-  'testID',
-  'onBlur',
-  'onFocus',
-  'onLayout',
-  'onLongPress',
-  'onPress',
-  'onPressIn',
-  'onPressOut',
-  'pressRetentionOffset',
-  'activeOpacity',
-  'tvParallaxProperties',
-  'hasTVPreferredFocus',
-  'pointerEvents',
-]);
-
-export const inputProps = new Set([
+type InputPropName = keyof TextInputProps;
+const inputPropNames = [
+  ...viewPropNamesWithEnsuredCompleteKeys,
+  ...accessibilityPropNamesWithEnsuredCompleteKeys,
   'allowFontScaling',
   'autoCapitalize',
   'autoCorrect',
@@ -277,24 +290,48 @@ export const inputProps = new Set([
   'selectTextOnFocus',
   'spellCheck',
   'textContentType',
-  'style',
   'textBreakStrategy',
   'underlineColorAndroid',
   'value',
-]);
+  'maxFontSizeMultiplier',
+  'onTextInput',
+  'inputAccessoryViewID',
+  'passwordRules',
+  'rejectResponderTermination',
+  'autoCompleteType',
+  'importantForAutofill',
+  'textAlignVertical',
+  'showSoftInputOnFocus',
+] as const;
+// this ensures that we get typescript errors if a key from ViewProps is missing
+const inputPropNamesWithEnsuredCompleteKeys: readonly typeof inputPropNames[number][] = inputPropNames as readonly InputPropName[];
+export const inputProps = new Set(inputPropNamesWithEnsuredCompleteKeys);
 
-export type PropsFilterFunction = (props: any) => any;
-
-export const makePropsFilter = (...propsSets: Set<string>[]): PropsFilterFunction => {
-  const allPropsSet = new Set<string>([]);
-  for (const set of propsSets) set.forEach((el) => allPropsSet.add(el));
-
-  return (props: any) => {
-    const propsCopy: any = {};
-    for (const key in props) if (allPropsSet.has(key)) propsCopy[key] = props[key];
-    return propsCopy;
-  };
-};
+type PressablePropName = keyof PressableProps | keyof TouchableOpacityProps;
+const pressablePropNames = [
+  ...viewPropNamesWithEnsuredCompleteKeys,
+  ...accessibilityPropNamesWithEnsuredCompleteKeys,
+  'delayLongPress',
+  'delayPressIn',
+  'delayPressOut',
+  'disabled',
+  'onBlur',
+  'onFocus',
+  'onLongPress',
+  'onPress',
+  'onPressIn',
+  'onPressOut',
+  'pressRetentionOffset',
+  'activeOpacity',
+  'children',
+  'android_disableSound',
+  'android_ripple',
+  'testOnly_pressed',
+  'touchSoundDisabled',
+] as const;
+// this ensures that we get typescript errors if a key from ViewProps is missing
+const pressablePropNamesWithEnsuredCompleteKeys: readonly typeof pressablePropNames[number][] = pressablePropNames as readonly PressablePropName[];
+export const pressableProps = new Set(pressablePropNamesWithEnsuredCompleteKeys);
 
 export const domProps = new Set([
   'allowFullScreen',
@@ -374,3 +411,14 @@ export const domProps = new Set([
   'onTransitionEnd',
   'onToggle',
 ]);
+
+export const makePropsFilter = <I>(...propsSets: Set<string>[]): ((props: any) => I) => {
+  const allPropsSet = new Set<string>([]);
+  for (const set of propsSets) set.forEach((el) => allPropsSet.add(el));
+
+  return (props: any) => {
+    const propsCopy: any = {};
+    for (const key in props) if (allPropsSet.has(key)) propsCopy[key] = props[key];
+    return propsCopy as I;
+  };
+};

@@ -17,6 +17,18 @@
     "paths": {
       "*": ["src/*", "node_modules/*"]
     },
+    "plugins": [
+      {
+        "name": "typescript-styled-plugin",
+        "tags": ["styled"],
+        "lint": {
+          "validProperties": ["elevation"],
+          "duplicateProperties": "warn",
+          "zeroUnits": "warning",
+          "float": "warning"
+        }
+      }
+    ],
     "jsx": "react",
     "esModuleInterop": true
   }

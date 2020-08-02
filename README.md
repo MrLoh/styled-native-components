@@ -192,7 +192,7 @@ const App = () => {
 };
 ```
 
-When you then declare components, you can define the props that may be passed to them explicitly:
+When you then declare styled components, you can define additional props that may be passed to the styled component so that they become available in the template literal expressions. The props of the component that is being styled and the theme will automatically be available in template literal expressions. The `children` and `style` props are not available in styled expressions for internal performance reasons.
 
 ```tsx
 const Wrapper = styled.View<{ margin: string }>`
@@ -212,3 +212,29 @@ const MyComponent = ({
   return <Wrapper margin={margin}>{children}</Wrapper>;
 };
 ```
+
+When using `.attrs<A, P>(attrObjectOrMaker)` you need to both declare the (return) value of the `attrObjectOrMaker` (first generic `A`) and the custom props (second generic `P`) required by template literal expressions. Typescript cannot infer only one of them and the extra props for template literal expressions cannot be infered.
+
+```tsx
+// component with a required appearace prop
+const ComponentBeingStyled: React.ComponentType<{ appearance: 'dark' | 'light'; style: ViewStyle }>;
+
+const StyledWithAttrs = styled(ComponentBeingStyled).attrs<
+  { appearance: 'dark' | 'light' },
+  { margin: string }
+>((p) => {
+  appearance: p.theme.darkMode ? 'dark' : 'light';
+})`
+  margin: ${(p) => p.margin};
+  padding: 2rem;
+  elevation: 2;
+  background-color: $background;
+`;
+
+const MyComponent = ({ margin = '1rem' }: { margin?: string }) => {
+  // appearance is not required anymore because it is provided by attrs
+  return <StyledWithAttrs margin={margin} />;
+};
+```
+
+In case that the component that is being styled has some required parameters, and you declare those as required on the `A` generic, then they will not be required on the generated styled component. Indeed they will even be excluded from the props of the generated styled component so that you may not accidentally try to provide them as props when instantiating it.
