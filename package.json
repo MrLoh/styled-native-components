@@ -5,6 +5,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/styled-native-components.esm.js",
+  "react-native": "src/index",
   "typings": "dist/index.d.ts",
   "scripts": {
     "start": "tsdx watch",
@@ -18,7 +19,7 @@
   },
   "peerDependencies": {
     "react": ">= 16.8.0",
-    "react-native": "0.63.2"
+    "react-native": "0.63.0"
   },
   "devDependencies": {
     "@types/react": "^16.9.43",
