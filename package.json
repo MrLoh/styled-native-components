@@ -29,6 +29,7 @@
     "eslint-plugin-react-native": "^3.8.1",
     "eslint-plugin-react-perf": "^3.2.4",
     "prettier": "^2.0.5",
+    "tsd": "^0.13.1",
     "tsdx": "^0.13.2",
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
