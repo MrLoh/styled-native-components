@@ -1,11 +1,14 @@
 {
   "name": "styled-native-components",
-  "author": "MrLoh",
-  "version": "0.2.1",
+  "version": "0.2.2",
+  "description": "Styled components like lib for react-native(-web)",
+  "repository": "https://github.com/MrLoh/styled-native-components",
+  "author": "@MrLoh",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/styled-native-components.esm.js",
   "react-native": "src/index",
+  "source": "src/index.ts",
   "typings": "dist/index.d.ts",
   "scripts": {
     "start": "tsdx watch",
