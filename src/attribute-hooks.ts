@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
+import { useWindowDimensions } from 'react-native';
 
 import { useTheme } from './theme';
-import { useWindowDimensions } from './window-dimensions';
 
 export const useLengthAttribute = (margin: string): [number, number, number, number] => {
   const theme = useTheme();
