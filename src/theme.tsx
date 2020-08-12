@@ -9,7 +9,6 @@ import { colorAttributes, lengthAttributes } from './attribute-sets';
 
 export interface ThemeInterface {
   rem: number;
-  colors: { [key: string]: string };
   elevation: (value: number) => Style;
 }
 
@@ -65,6 +64,7 @@ export const ThemeProvider = ({
               html, body, #root {
                 font-family: -apple-system, Roboto, sans-serif;
                 min-height: 100%;
+                ${/** @ts-ignore */ ''}
                 background: ${theme.colors.background || 'white'};
                 font-size: ${theme.rem}px;
               }
@@ -98,6 +98,7 @@ export const resolveColorVariablePlaceholder = (variableName: string): string =>
 
 // resolve any occurences of theme variables in the values of a style object
 const plattformIsWeb = Platform.OS === 'web';
+
 export const resolveThemeVariables = (
   styleObject: { [key: string]: any },
   theme: DefaultTheme,
@@ -115,8 +116,10 @@ export const resolveThemeVariables = (
     if (colorAttributes.has(key)) {
       const colorName = themeColors.nameForHex.get(styleObject[key]);
       if (colorName) {
-        if (colorName in theme.colors) {
-          styleObject[key] = theme.colors[colorName];
+        // @ts-ignore cannot add colors to ThemeInterface because we don't want to restrict it
+        const colors = theme.colors as Record<string, string>;
+        if (colorName in colors) {
+          styleObject[key] = colors[colorName];
         } else {
           throw new Error(`the color variable '$${colorName}' has not been defined in the theme.`);
         }
@@ -124,14 +127,12 @@ export const resolveThemeVariables = (
     }
     // resolve all rem and viewport units unless on web where they are supported natively
     if (!plattformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
-      if (!plattformIsWeb) {
-        if (styleObject[key].includes('rem')) {
-          styleObject[key] = Number.parseFloat(styleObject[key]) * theme.rem;
-        } else if (styleObject[key].includes('vw')) {
-          styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.width) / 100;
-        } else if (styleObject[key].includes('vh')) {
-          styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.height) / 100;
-        }
+      if (styleObject[key].includes('rem')) {
+        styleObject[key] = Number.parseFloat(styleObject[key]) * theme.rem;
+      } else if (styleObject[key].includes('vw')) {
+        styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.width) / 100;
+      } else if (styleObject[key].includes('vh')) {
+        styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.height) / 100;
       }
     }
   }

@@ -42,9 +42,11 @@ export const useLengthAttribute = (margin: string): [number, number, number, num
 
 export const useColorAttribute = (color: string): string => {
   const theme = useTheme();
-  return color in theme.colors
-    ? theme.colors[color]
-    : color && color.substring(1) in theme.colors
-    ? theme.colors[color.substring(1)]
+  // @ts-ignore cannot add colors to ThemeInterface because we don't want to restrict it
+  const colors = theme.colors as Record<string, string>;
+  return color in colors
+    ? colors[color]
+    : color && color.substring(1) in colors
+    ? colors[color.substring(1)]
     : color;
 };
