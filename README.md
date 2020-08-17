@@ -50,6 +50,8 @@ As seen above the library enables usage of `$` prefixed color variables in your 
 
 The color variables are provided as a color object through the theme context. Additionally a `rem` variable is supported (When running on web, the rem size will be handled like usual based on the root font size). You can also specify an elevation function that transforms an elevation value to shadow styles.
 
+The `ThemeProvider` will automatically inject some global CSS to set the root font size for `rem` units, a background color and default fonts. You can override those values with the `rootFont` and `rootBackgroundColor` props. You can also inject additional global CSS with the `rootCss` property. By default CSS will be injected to disable outlines on input fields, to disable this pass `disableOutlines={false}`.
+
 ```js
 import { ThemeProvider } from 'styled-native-components';
 

@@ -49,10 +49,24 @@ export const withTheme = <P extends { children?: ReactNode }>(
 export const ThemeProvider = ({
   theme,
   children,
+  rootCss,
+  rootFont = '-apple-system, Roboto, sans-serif',
+  rootBackgroundColor = 'white',
+  disableOutlines = true,
 }: {
   theme: DefaultTheme;
   children: ReactNode;
+  rootCss?: string;
+  rootFont?: string;
+  rootBackgroundColor?: string;
+  disableOutlines?: boolean;
 }) => {
+  // @ts-ignore cannot add colors to ThemeInterface because we don't want to restrict it
+  const colors = theme.colors as Record<string, string>;
+  const backgroundColor =
+    rootBackgroundColor.substring(0, 1) === '$'
+      ? colors[rootBackgroundColor.substring(1)]
+      : rootBackgroundColor;
   return (
     <ThemeContext.Provider value={theme}>
       <>
@@ -61,16 +75,16 @@ export const ThemeProvider = ({
             // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
             dangerouslySetInnerHTML={{
               __html: `
-              html, body, #root {
-                font-family: -apple-system, Roboto, sans-serif;
-                min-height: 100%;
-                ${/** @ts-ignore */ ''}
-                background: ${theme.colors.background || 'white'};
-                font-size: ${theme.rem}px;
-              }
-              #root { display: flex; }
-              textarea, select, input { outline: none; }
-            `,
+                html, body, #root {
+                  font-family: ${rootFont};
+                  min-height: 100%;
+                  background: ${backgroundColor};
+                  font-size: ${theme.rem}px;
+                }
+                #root { display: flex; }
+                ${disableOutlines ? 'textarea, select, input { outline: none; }' : ''}
+                ${rootCss || ''}
+              `,
             }}
             key="global_style"
           />
