@@ -4,7 +4,7 @@ import { Text, TextInput } from 'react-native';
 
 import type { ViewProps } from 'react-native';
 
-import styled from './index';
+import styled from '../src';
 
 describe('typings', () => {
   const Simple = ({ required, optional }: { required: string; optional?: string }) => {
@@ -56,6 +56,7 @@ describe('typings', () => {
     `;
     const inputRef = React.createRef<TextInput>();
     const textRef = React.createRef<Text>();
+    const undefinedRef = React.createRef();
     // @ts-expect-error missin elevation prop
     expectTypeError(<StyledWithRef required="foo" />);
     // @ts-expect-error missing label prop

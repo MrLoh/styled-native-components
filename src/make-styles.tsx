@@ -106,7 +106,10 @@ const useStyleSheet = (styles: { [key: string]: Style }, theme: DefaultTheme) =>
   }, [styles, theme, windowDimensions]);
 };
 
-export type OptionalKeys<T> = { [K in keyof T]?: undefined extends T[K] ? K : never }[keyof T];
+export type OptionalKeys<T> = Exclude<
+  { [K in keyof T]: T extends Record<K, T[K]> ? never : K }[keyof T],
+  undefined
+>;
 export type RequiredKeys<T> = Exclude<keyof T, OptionalKeys<T>>;
 type TemplateStringExpression<P> = string | number | ((props: P) => string | number);
 export type TemplateFunction<I, P, A = {}> = (
