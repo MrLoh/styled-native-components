@@ -4,10 +4,10 @@ import { ThemeProvider } from '../src';
 
 import type { ReactNode } from 'react';
 import type { ReactTestRenderer } from 'react-test-renderer';
-import type { DefaultTheme } from '../src';
+import type { Theme } from '../src';
 
 declare module '../src' {
-  export interface DefaultTheme {
+  export interface Theme {
     rem: number;
     colors: {
       accent: string;
@@ -28,7 +28,7 @@ declare module '../src' {
   }
 }
 
-export const theme: DefaultTheme = {
+export const theme: Theme = {
   rem: 8,
   colors: {
     accent: '#11C5D9',

@@ -12,7 +12,7 @@ import {
 import type { ForwardRefRenderFunction, ReactNode, ComponentType } from 'react';
 import type { StyleProp, ScaledSize } from 'react-native';
 import type { Style } from 'css-to-react-native';
-import type { DefaultTheme } from './theme';
+import type { Theme } from './theme';
 
 // resolve css template literal content into a single string, allow for props functions
 const cssCommentRegexp = new RegExp('\\/\\*[^]+?\\*\\/', 'g');
@@ -113,11 +113,7 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
   return nestedStyleObject;
 };
 
-const matchMediaRule = (
-  mediaRule: string,
-  theme: DefaultTheme,
-  windowDimensions: ScaledSize
-): boolean => {
+const matchMediaRule = (mediaRule: string, theme: Theme, windowDimensions: ScaledSize): boolean => {
   let matched = true;
   for (const condition of mediaRule.split('and')) {
     const [name, strVal] = condition.replace(/\(|\)/g, '').trim().split(':');
@@ -146,7 +142,7 @@ const matchMediaRule = (
 // generate styleSheet from nested style Object with media queries
 const useStyleSheet = (
   styles: NestedStyles,
-  theme: DefaultTheme,
+  theme: Theme,
   windowDimensions: ScaledSize
 ): { [key: string]: Style } => {
   return useMemo(() => {
@@ -179,11 +175,11 @@ type TemplateStringExpression<P> = string | number | ((props: P) => string | num
 export type TemplateFunction<I, P, A = {}> = (
   strings: TemplateStringsArray,
   ...expressions: TemplateStringExpression<
-    Omit<P & I, RequiredKeys<A> | 'children' | 'style'> & { theme: DefaultTheme } & A
+    Omit<P & I, RequiredKeys<A> | 'children' | 'style'> & { theme: Theme } & A
   >[]
 ) => ComponentType<Omit<P & I, RequiredKeys<A>>>;
 export type AttrProps<P, I, A> = Omit<P & I, RequiredKeys<A> | 'children' | 'style'> & {
-  theme: DefaultTheme;
+  theme: Theme;
 };
 
 export const makeTemplateFunction = <

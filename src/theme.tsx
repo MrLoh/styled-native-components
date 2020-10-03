@@ -17,22 +17,22 @@ export interface ThemeInterface {
  * without needing to reexport `ThemedStyledComponentsModule`.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface DefaultTheme extends ThemeInterface {}
+export interface Theme extends ThemeInterface {}
 
-export let ThemeContext = createContext(null) as React.Context<DefaultTheme | null>;
+export let ThemeContext = createContext(null) as React.Context<Theme | null>;
 
-export const setThemeContext = (ExternalThemeContext: React.Context<DefaultTheme | null>) => {
+export const setThemeContext = (ExternalThemeContext: React.Context<Theme | null>) => {
   ThemeContext = ExternalThemeContext;
 };
 
-export const useTheme = (): DefaultTheme => {
+export const useTheme = (): Theme => {
   const theme = useContext(ThemeContext);
   if (!theme) throw new Error('missing theme context, wrap your app in a ThemeProvider');
   return theme;
 };
 
 export const withTheme = <P extends { children?: ReactNode }>(
-  Component: ComponentType<P & { theme: DefaultTheme }>
+  Component: ComponentType<P & { theme: Theme }>
 ): ComponentType<P> => {
   const ComponentWithTheme = (props: P) => {
     const theme = useTheme();
@@ -54,7 +54,7 @@ export const ThemeProvider = ({
   rootBackgroundColor = 'white',
   disableOutlines = true,
 }: {
-  theme: DefaultTheme;
+  theme: Theme;
   children: ReactNode;
   rootCss?: string;
   rootFont?: string;
@@ -116,7 +116,7 @@ const plattformIsWeb = Platform.OS === 'web';
 
 export const resolveLengthUnit = (
   str: string | number | undefined,
-  theme: DefaultTheme,
+  theme: Theme,
   windowDimensions: ScaledSize
 ): number | string | undefined => {
   if (!str || typeof str === 'number') return str;
@@ -143,7 +143,7 @@ export const resolveLengthUnit = (
 
 export const resolveThemeVariables = (
   styleObject: { [key: string]: any },
-  theme: DefaultTheme,
+  theme: Theme,
   windowDimensions: ScaledSize
 ) => {
   for (const key in styleObject) {

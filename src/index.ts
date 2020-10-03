@@ -25,7 +25,7 @@ import {
 } from './prop-sets';
 
 import type { ComponentType } from 'react';
-import type { DefaultTheme, ThemeInterface } from './theme';
+import type { Theme, ThemeInterface } from './theme';
 import type { TemplateFunction, AttrProps } from './make-styles';
 
 interface StyledInterface<I> {
@@ -83,5 +83,5 @@ export {
   useColorAttribute,
 };
 
-export type { DefaultTheme, ThemeInterface };
+export type { Theme, ThemeInterface };
 export type { Style } from 'css-to-react-native';

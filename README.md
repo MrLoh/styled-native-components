@@ -139,7 +139,7 @@ class Component extends React.Component {
 
 #### Typescript
 
-The library is fully typed. You can set the Theme Context by redeclaring the `DefaultTheme` interface of this library the same way you would do for the original styled components library. Your default theme should implement the following interfact:
+The library is fully typed. You can set the Theme Context by redeclaring the `Theme` interface of this library the same way you would do for the original styled components library. Your default theme should implement the following interfact:
 
 ```ts
 interface ThemeInterface {
@@ -153,10 +153,10 @@ All you do is to put something like this where you define your theme.
 
 ```tsx
 import { ThemeProvider } from 'styled-native-components';
-import type { DefaultTheme } from 'styled-native-components';
+import type { Theme } from 'styled-native-components';
 
 declare module 'styled-native-components' {
-  export interface DefaultTheme {
+  export interface Theme {
     rem: number;
     colors: {
       accent: string;
@@ -170,7 +170,7 @@ declare module 'styled-native-components' {
 
 const App = () => {
   const darkMode = useDarMode();
-  const theme: DefaultTheme = {
+  const theme: Theme = {
     rem: 8,
     colors: {
       accent: 'seagreen',
