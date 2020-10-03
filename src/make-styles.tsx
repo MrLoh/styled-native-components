@@ -2,10 +2,15 @@ import React, { useMemo, forwardRef, memo } from 'react';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { getPropertyName, getStylesForProperty } from 'css-to-react-native';
 
-import { resolveColorVariablePlaceholder, resolveThemeVariables, useTheme } from './theme';
+import {
+  resolveColorVariablePlaceholder,
+  resolveThemeVariables,
+  resolveLengthUnit,
+  useTheme,
+} from './theme';
 
 import type { ForwardRefRenderFunction, ReactNode, ComponentType } from 'react';
-import type { StyleProp } from 'react-native';
+import type { StyleProp, ScaledSize } from 'react-native';
 import type { Style } from 'css-to-react-native';
 import type { DefaultTheme } from './theme';
 
@@ -71,38 +76,97 @@ const createStyleObject = (cssDeclaration?: string): Style => {
   return styleObject;
 };
 
-// create an object of RN style objects from a single css declaration
-const nestedStyleObjectsCache = new Map<string, { [key: string]: Style }>([]);
-const nestedDeclarationRegExp = new RegExp('\\w+\\s*\\{([^]+?)\\}', 'g');
-const createNestedStyleObject = (nestedCssDeclaration: string): { [key: string]: Style } => {
-  let nestedStyleObjects = nestedStyleObjectsCache.get(nestedCssDeclaration);
-  if (!nestedStyleObjects) {
-    let mainStyleDeclaration = nestedCssDeclaration;
-    nestedStyleObjects = {};
-    let matches;
-    while ((matches = nestedDeclarationRegExp.exec(nestedCssDeclaration))) {
-      const [string, content] = matches;
-      const declaration = content.trim();
-      const name = string.split('{')[0].trim();
-      nestedStyleObjects[`${name}Style`] = createStyleObject(declaration);
-      mainStyleDeclaration = mainStyleDeclaration.replace(string, '');
+type NestedStyles = { [nestedStyle: string]: { main: Style; [mediaRule: string]: Style } };
+const nestedStyleObjectsCache = new Map<string, NestedStyles>([]);
+// create an object of RN style objects for each media query from a single css declaration
+export const createNestedStyleObject = (cssDeclaration: string): NestedStyles => {
+  let nestedStyleObject = nestedStyleObjectsCache.get(cssDeclaration);
+  if (!nestedStyleObject) {
+    nestedStyleObject = { style: { main: {} } };
+    let match: RegExpExecArray | null;
+    let start = 0;
+    let name: string;
+    let nOpen = 0;
+    let mainDeclaration = '';
+    const braceRegExp = new RegExp('\\s*.+\\s*\\{|\\}', 'g');
+    while ((match = braceRegExp.exec(cssDeclaration))) {
+      if (nOpen === 0) {
+        mainDeclaration += cssDeclaration.substring(start, match.index);
+        start = match.index + match[0].length;
+        name = cssDeclaration.substring(match.index, match.index + match[0].length - 1).trim();
+      }
+      nOpen = nOpen + (match[0] === '}' ? -1 : +1);
+      if (nOpen === 0) {
+        const declaration = cssDeclaration.substring(start, match.index).trim();
+        start = match.index + 1;
+        if (name!.substring(0, 6) === '@media') {
+          nestedStyleObject.style[name!.substring(6).trim()] = createStyleObject(declaration);
+        } else {
+          nestedStyleObject[name! + 'Style'] = createNestedStyleObject(declaration).style;
+        }
+      }
     }
-    nestedStyleObjects.style = createStyleObject(mainStyleDeclaration.trim());
-    nestedStyleObjectsCache.set(nestedCssDeclaration, nestedStyleObjects);
+    mainDeclaration += cssDeclaration.substring(start, cssDeclaration.length);
+    nestedStyleObject.style.main = createStyleObject(mainDeclaration.trim());
+    nestedStyleObjectsCache.set(cssDeclaration, nestedStyleObject);
   }
-  return nestedStyleObjects;
+  return nestedStyleObject;
 };
 
-// generate styleSheet from nested style Object
-const useStyleSheet = (styles: { [key: string]: Style }, theme: DefaultTheme) => {
-  const windowDimensions = useWindowDimensions();
+const matchMediaRule = (
+  mediaRule: string,
+  theme: DefaultTheme,
+  windowDimensions: ScaledSize
+): boolean => {
+  let matched = true;
+  for (const condition of mediaRule.split('and')) {
+    const [name, strVal] = condition.replace(/\(|\)/g, '').trim().split(':');
+    const value = resolveLengthUnit(strVal, theme, windowDimensions);
+    if (typeof value !== 'number') throw new Error(`invalid unit on @media ${mediaRule}`);
+    const { width, height } = windowDimensions;
+    switch (name) {
+      case 'min-width':
+        matched = matched && width >= value;
+        break;
+      case 'max-width':
+        matched = matched && width <= value;
+        break;
+      case 'min-height':
+        matched = matched && height >= value;
+        break;
+      case 'max-height':
+        matched = matched && height <= value;
+        break;
+    }
+    // console.log('matching', condition, value, windowDimensions, matched);
+  }
+  return matched;
+};
+
+// generate styleSheet from nested style Object with media queries
+const useStyleSheet = (
+  styles: NestedStyles,
+  theme: DefaultTheme,
+  windowDimensions: ScaledSize
+): { [key: string]: Style } => {
   return useMemo(() => {
+    const finalStyles: { [key: string]: Style } = {};
     // we need to make sure to do a deep clone here, so that theme and viewport units can be resolved from original strings
     const stylesCopy = { ...styles };
     for (const key in stylesCopy) {
-      stylesCopy[key] = resolveThemeVariables({ ...stylesCopy[key] }, theme, windowDimensions);
+      const { main, ...mediaStylesCopy } = stylesCopy[key];
+      // this will contain the main style and all applicapble media query styles
+      const mediaStylesArray = [resolveThemeVariables({ ...main }, theme, windowDimensions)];
+      for (const mediaRule in mediaStylesCopy) {
+        if (matchMediaRule(mediaRule, theme, windowDimensions)) {
+          mediaStylesArray.push(
+            resolveThemeVariables({ ...mediaStylesCopy[mediaRule] }, theme, windowDimensions)
+          );
+        }
+      }
+      finalStyles[key] = Object.assign({}, ...mediaStylesArray);
     }
-    return StyleSheet.create(stylesCopy);
+    return StyleSheet.create(finalStyles);
   }, [styles, theme, windowDimensions]);
 };
 
@@ -135,18 +199,20 @@ export const makeTemplateFunction = <
   ...expressions: TemplateStringExpression<AttrProps<P, I, A> & A>[]
 ): ComponentType<Omit<P & I, RequiredKeys<A>>> => {
   const displayName = `Styled(${Component.displayName || Component.name})`;
-  let styledForwardRefRenderFunction: ForwardRefRenderFunction<any, Omit<P & I, RequiredKeys<A>>>;
+  let StyledForwardRefRenderFunction: ForwardRefRenderFunction<any, Omit<P & I, RequiredKeys<A>>>;
   if (expressions.every((exp) => typeof exp === 'string')) {
     // if no props are used in the styles, then we can statically generate the cssString
     const cssString = resolveTemplateLiteral(strings, expressions as string[]);
     const styles = createNestedStyleObject(cssString);
-    styledForwardRefRenderFunction = (
+    StyledForwardRefRenderFunction = (
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore ts doesn't understand that A is not allwoed to declar children and style
       { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
       ref
     ) => {
       const theme = useTheme();
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme);
+      const dimensions = useWindowDimensions();
+      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
       return (
@@ -157,18 +223,20 @@ export const makeTemplateFunction = <
     };
   } else {
     // if the cssString depends on props, we can at least ignore changes to children
-    styledForwardRefRenderFunction = (
+    StyledForwardRefRenderFunction = (
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore ts doesn't understand that A is not allwoed to declar children and style
       { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
       ref
     ) => {
       const theme = useTheme();
+      const dimensions = useWindowDimensions();
       const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
       const cssString = useMemo(() => {
         return resolveTemplateLiteral(strings, expressions, transformedProps);
-      }, [props, theme]);
+      }, [transformedProps]);
       const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme);
+      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       return (
         <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
@@ -177,13 +245,15 @@ export const makeTemplateFunction = <
       );
     };
   }
-  styledForwardRefRenderFunction.displayName = displayName;
+  StyledForwardRefRenderFunction.displayName = displayName;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore ts gets confused in HOC wrappers but the declared return type has the proper refs
-  return memo(forwardRef(styledForwardRefRenderFunction));
+  return memo(forwardRef(StyledForwardRefRenderFunction));
 };
 
 export const useStyle = (cssDeclaration: string): Style => {
   const theme = useTheme();
-  const styles = useMemo(() => ({ generated: createStyleObject(cssDeclaration.trim()) }), []);
-  return useStyleSheet(styles, theme).generated;
+  const dimensions = useWindowDimensions();
+  const styles = useMemo(() => createNestedStyleObject(cssDeclaration.trim()), []);
+  return useStyleSheet(styles, theme, dimensions).style;
 };

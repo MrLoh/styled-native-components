@@ -44,7 +44,8 @@ export const theme: DefaultTheme = {
     zIndex: value,
   }),
   borderRadius: ['0.5rem', '1rem', '2rem'],
+  // media: { desktop: '(min-width: 1281px)' },
 };
 
-export const render = (children: ReactNode, theme: DefaultTheme): ReactTestRenderer =>
+export const render = (children: ReactNode): ReactTestRenderer =>
   TestRenderer.create(<ThemeProvider theme={theme}>{children}</ThemeProvider>);

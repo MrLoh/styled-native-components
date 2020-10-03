@@ -1,4 +1,5 @@
 // Components
+type Style = Object;
 export const View = jest.fn(() => 'View');
 export const Text = jest.fn(() => 'Text');
 export const Image = jest.fn(() => 'Image');
@@ -10,6 +11,9 @@ export const TouchableOpacity = jest.fn(() => 'TouchableOpacity');
 export const SafeAreaView = jest.fn(() => 'SafeAreaView');
 
 // Other
-export const useWindowDimensions = () => ({ width: 100, height: 100 });
-export const StyleSheet = { create: jest.fn((s) => s) };
+export const useWindowDimensions = jest.fn(() => ({ width: 100, height: 100 }));
+export const StyleSheet = {
+  create: jest.fn((s) => s),
+  flatten: (styles: Style[]) => Object.assign({}, ...styles),
+};
 export const Platform = { OS: 'test' };

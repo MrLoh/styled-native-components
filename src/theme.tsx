@@ -61,6 +61,7 @@ export const ThemeProvider = ({
   rootBackgroundColor?: string;
   disableOutlines?: boolean;
 }) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore cannot add colors to ThemeInterface because we don't want to restrict it
   const colors = theme.colors as Record<string, string>;
   const backgroundColor =
@@ -113,6 +114,33 @@ export const resolveColorVariablePlaceholder = (variableName: string): string =>
 // resolve any occurences of theme variables in the values of a style object
 const plattformIsWeb = Platform.OS === 'web';
 
+export const resolveLengthUnit = (
+  str: string | number | undefined,
+  theme: DefaultTheme,
+  windowDimensions: ScaledSize
+): number | string | undefined => {
+  if (!str || typeof str === 'number') return str;
+  if (typeof str !== 'string') throw new Error(`expected ${str} to be a string`);
+  const value = Number.parseFloat(str);
+  if (value === 0) return 0;
+  const unit = str.trim().replace(String(value), '');
+  if (!unit) throw new Error(`length string '${str}' contains no unit`);
+  switch (unit) {
+    case 'rem':
+      return value * theme.rem;
+    case 'px':
+      return value;
+    case '%':
+      return str;
+    case 'vw':
+      return (value * windowDimensions.width) / 100;
+    case 'vh':
+      return (value * windowDimensions.height) / 100;
+    default:
+      throw new Error(`cannot parse length string '${str}', unknown unit '${unit}'`);
+  }
+};
+
 export const resolveThemeVariables = (
   styleObject: { [key: string]: any },
   theme: DefaultTheme,
@@ -122,6 +150,8 @@ export const resolveThemeVariables = (
     if (key === 'elevation' && theme.elevation) {
       const shadowStyleObject = theme.elevation(styleObject[key] as number);
       for (const shadowKey in shadowStyleObject) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore typescript doesn't understand that we are assigning the same keys here
         styleObject[shadowKey] = shadowStyleObject[shadowKey];
       }
     }
@@ -130,6 +160,7 @@ export const resolveThemeVariables = (
     if (colorAttributes.has(key)) {
       const colorName = themeColors.nameForHex.get(styleObject[key]);
       if (colorName) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore cannot add colors to ThemeInterface because we don't want to restrict it
         const colors = theme.colors as Record<string, string>;
         if (colorName in colors) {
@@ -141,13 +172,7 @@ export const resolveThemeVariables = (
     }
     // resolve all rem and viewport units unless on web where they are supported natively
     if (!plattformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
-      if (styleObject[key].includes('rem')) {
-        styleObject[key] = Number.parseFloat(styleObject[key]) * theme.rem;
-      } else if (styleObject[key].includes('vw')) {
-        styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.width) / 100;
-      } else if (styleObject[key].includes('vh')) {
-        styleObject[key] = (Number.parseFloat(styleObject[key]) * windowDimensions.height) / 100;
-      }
+      styleObject[key] = resolveLengthUnit(styleObject[key], theme, windowDimensions);
     }
   }
   return styleObject;

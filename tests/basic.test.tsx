@@ -1,19 +1,21 @@
 import React from 'react';
-import { View, ScrollView, Text } from 'react-native';
+import { View, ScrollView, useWindowDimensions } from 'react-native';
 
 import styled from '../src';
 import { render, theme } from './test-helper';
 
-describe.only('can genereate basic styles', () => {
+describe.only('basic styles', () => {
   beforeEach(() => {
     ((View as unknown) as jest.Mock).mockClear();
+    ((ScrollView as unknown) as jest.Mock).mockClear();
+    (useWindowDimensions as jest.Mock).mockClear();
   });
 
   it('genereates a style prop', () => {
     const StyledComponent = styled.View`
       color: red;
     `;
-    render(<StyledComponent />, theme);
+    render(<StyledComponent />);
     expect(View).toHaveBeenCalledWith(
       expect.objectContaining({
         style: {
@@ -30,7 +32,7 @@ describe.only('can genereate basic styles', () => {
       height: 3rem;
       elevation: 2;
     `;
-    render(<StyledComponent />, theme);
+    render(<StyledComponent />);
     expect(View).toHaveBeenCalledWith(
       expect.objectContaining({
         style: {
@@ -47,7 +49,7 @@ describe.only('can genereate basic styles', () => {
     const StyledComponent = styled.View<{ active?: boolean }>`
       color: ${(p) => (p.active ? '$accent' : '$text')};
     `;
-    render(<StyledComponent />, theme);
+    render(<StyledComponent />);
     expect(View).toHaveBeenCalledWith(
       expect.objectContaining({
         style: {
@@ -56,7 +58,7 @@ describe.only('can genereate basic styles', () => {
       }),
       {}
     );
-    render(<StyledComponent active />, theme);
+    render(<StyledComponent active />);
     expect(View).toHaveBeenCalledWith(
       expect.objectContaining({
         style: {
@@ -74,7 +76,7 @@ describe.only('can genereate basic styles', () => {
         width: 500px;
       }
     `;
-    render(<StyledComponent />, theme);
+    render(<StyledComponent />);
     expect(ScrollView).toHaveBeenCalledWith(
       expect.objectContaining({
         style: {
@@ -82,6 +84,24 @@ describe.only('can genereate basic styles', () => {
         },
         contentContainerStyle: {
           width: 500,
+        },
+      }),
+      {}
+    );
+  });
+
+  it('does support viewport units', () => {
+    const StyledComponent = styled.View`
+      width: 87vw;
+      height: 23vh;
+    `;
+    (useWindowDimensions as jest.Mock).mockReturnValueOnce({ width: 1, height: 1 });
+    render(<StyledComponent />);
+    expect(View).toHaveBeenCalledWith(
+      expect.objectContaining({
+        style: {
+          width: 0.87,
+          height: 0.23,
         },
       }),
       {}
