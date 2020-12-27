@@ -1,3 +1,5 @@
+[![Wallaby.js](https://img.shields.io/badge/wallaby.js-powered-blue.svg?style=flat&logo=github)](https://wallabyjs.com/oss/)
+
 # styled-native-components
 
 A [Styled Components](https://www.styled-components.com) alternative for React Native (Web), that supports color variables, rem, vh, vw, media queries, nested style definitions for `contentContainerStyle`, and web centric CSS concepts ported to React Native Web.
