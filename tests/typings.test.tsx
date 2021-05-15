@@ -23,6 +23,19 @@ describe('typings', () => {
     expectType<React.ComponentType<ViewProps>>(StyledComponent);
   });
 
+  it('supports components with generics', () => {
+    const StyledFlatList = styled.FlatList`
+      background-color: white;
+    `;
+    expect(
+      <StyledFlatList
+        data={['a', 'b', 'c']}
+        renderItem={({ item }: { item: string }) => <Text>{item}</Text>}
+        keyExtractor={(item: string) => item}
+      />
+    ).toBeTruthy();
+  });
+
   it('can add required props', () => {
     const Styled = styled(Simple)<{ elevation: number }>`
       elevation: ${(p) => p.elevation};
