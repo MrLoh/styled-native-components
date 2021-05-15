@@ -10,6 +10,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 
+import { useWindowDimensions } from './window-dimensions';
 import { ThemeProvider, useTheme, withTheme, ThemeContext, setThemeContext } from './theme';
 import { makeTemplateFunction, useStyle } from './make-styles';
 import { useLengthAttribute, useColorAttribute } from './attribute-hooks';
@@ -81,6 +82,7 @@ export {
   setThemeContext,
   useLengthAttribute,
   useColorAttribute,
+  useWindowDimensions,
 };
 
 export type { Theme, ThemeInterface };

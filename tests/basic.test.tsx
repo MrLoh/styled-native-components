@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, ScrollView, useWindowDimensions } from 'react-native';
+import { View, ScrollView } from 'react-native';
 
-import styled from '../src';
+import styled, { useWindowDimensions } from '../src';
 import { render, theme } from './test-helper';
+
+jest.mock('../src/window-dimensions.ts');
 
 describe.only('basic styles', () => {
   beforeEach(() => {

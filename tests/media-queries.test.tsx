@@ -1,9 +1,11 @@
 import React from 'react';
-import { ScrollView, Text, useWindowDimensions } from 'react-native';
+import { ScrollView, Text } from 'react-native';
 
-import styled from '../src';
+import styled, { useWindowDimensions } from '../src';
 import { createNestedStyleObject } from '../src/make-styles';
 import { render, theme } from './test-helper';
+
+jest.mock('../src/window-dimensions.ts');
 
 describe.only('media queries', () => {
   beforeEach(() => {
