@@ -1,7 +1,8 @@
 import React, { useMemo, forwardRef, memo } from 'react';
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { getPropertyName, getStylesForProperty } from 'css-to-react-native';
 
+import { useWindowDimensions } from './window-dimensions';
 import {
   resolveColorVariablePlaceholder,
   resolveThemeVariables,

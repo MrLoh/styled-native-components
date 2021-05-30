@@ -1,8 +1,16 @@
 import React from 'react';
-import { View, Text, useWindowDimensions } from 'react-native';
+import { View, Text } from 'react-native';
 
-import { useStyle, useTheme, useColorAttribute, useLengthAttribute } from '../src';
+import {
+  useStyle,
+  useTheme,
+  useColorAttribute,
+  useLengthAttribute,
+  useWindowDimensions,
+} from '../src';
 import { render, theme } from './test-helper';
+
+jest.mock('../src/window-dimensions.ts');
 
 describe.only('hooks', () => {
   beforeEach(() => {
