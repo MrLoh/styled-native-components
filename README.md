@@ -51,6 +51,17 @@ const StyledComponentWithMediaQuery = styled.Text`
     font-size: 14px;
   }
 `;
+
+const StyledContainerComponent = styled.Component`
+  contain: layout;
+`;
+
+const StyledComponentWithContainerQuery = styled.Text`
+  font-size: 12px;
+  @container (max-width: 100px) {
+    font-size: 10px;
+  }
+`;
 ```
 
 #### Theming

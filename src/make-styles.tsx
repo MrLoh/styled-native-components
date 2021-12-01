@@ -1,8 +1,8 @@
-import React, { useMemo, forwardRef, memo } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useMemo, forwardRef, memo, createContext, useContext } from 'react';
+import { LayoutChangeEvent, StyleSheet } from 'react-native';
 import { getPropertyName, getStylesForProperty } from 'css-to-react-native';
 
-import { useWindowDimensions } from './window-dimensions';
+import { useContainerDimensions, useWindowDimensions } from './window-dimensions';
 import {
   resolveColorVariablePlaceholder,
   resolveThemeVariables,
@@ -14,6 +14,16 @@ import type { ForwardRefRenderFunction, ReactNode, ComponentType } from 'react';
 import type { StyleProp, ScaledSize } from 'react-native';
 import type { Style } from 'css-to-react-native';
 import type { Theme } from './theme';
+
+export type GenericSize = { height: number; width: number };
+export type ComponentSizeChanges = [GenericSize, (event: LayoutChangeEvent) => void];
+
+//Setting up Container Query Context
+export let ContainerSizeContext = createContext(null) as React.Context<GenericSize | null>;
+
+export const setContainerContext = (ExternalContainerContext: React.Context<GenericSize | null>) => {
+  ContainerSizeContext = ExternalContainerContext;
+};
 
 // resolve css template literal content into a single string, allow for props functions
 const cssCommentRegexp = new RegExp('\\/\\*[^]+?\\*\\/', 'g');
@@ -68,7 +78,7 @@ const createStyleObject = (cssDeclaration?: string): Style => {
           try {
             return getStylesForProperty(getPropertyName(name), resolvedValue);
           } catch (e) {
-            throw new Error(`could not parse '${name}: ${value}'\n${e.message}`);
+            throw new Error(`could not parse '${name}: ${value}'\n${e}`);
           }
         })
     ) as Style;
@@ -100,11 +110,12 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
       if (nOpen === 0) {
         const declaration = cssDeclaration.substring(start, match.index).trim();
         start = match.index + 1;
-        if (name!.substring(0, 6) === '@media') {
-          nestedStyleObject.style[name!.substring(6).trim()] = createStyleObject(declaration);
-        } else {
-          nestedStyleObject[name! + 'Style'] = createNestedStyleObject(declaration).style;
+        const [, atRule, mediaFeatures] = name!.match(/(@(?:media|container)).*?(\(.*?\))/)?? [];
+        if(atRule) {
+          nestedStyleObject.style[mediaFeatures!] = createStyleObject(declaration);
+          continue;
         }
+        nestedStyleObject[name! + 'Style'] = createNestedStyleObject(declaration).style;
       }
     }
     mainDeclaration += cssDeclaration.substring(start, cssDeclaration.length);
@@ -114,13 +125,13 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
   return nestedStyleObject;
 };
 
-const matchMediaRule = (mediaRule: string, theme: Theme, windowDimensions: ScaledSize): boolean => {
+const matchQueryRule = (rule: string, theme: Theme, windowDimensions: ScaledSize, containerDimensions?: GenericSize): boolean => {
   let matched = true;
-  for (const condition of mediaRule.split('and')) {
+  for (const condition of rule.split('and')) {
     const [name, strVal] = condition.replace(/\(|\)/g, '').trim().split(':');
     const value = resolveLengthUnit(strVal, theme, windowDimensions);
-    if (typeof value !== 'number') throw new Error(`invalid unit on @media ${mediaRule}`);
-    const { width, height } = windowDimensions;
+    if (typeof value !== 'number') throw new Error(`invalid unit on @media/@container ${rule}`);
+    const { width, height } = containerDimensions ? containerDimensions : windowDimensions;
     switch (name) {
       case 'min-width':
         matched = matched && width >= value;
@@ -144,7 +155,8 @@ const matchMediaRule = (mediaRule: string, theme: Theme, windowDimensions: Scale
 const useStyleSheet = (
   styles: NestedStyles,
   theme: Theme,
-  windowDimensions: ScaledSize
+  windowDimensions: ScaledSize,
+  containerDimensions: GenericSize,
 ): { [key: string]: Style } => {
   return useMemo(() => {
     const finalStyles: { [key: string]: Style } = {};
@@ -152,10 +164,10 @@ const useStyleSheet = (
     const stylesCopy = { ...styles };
     for (const key in stylesCopy) {
       const { main, ...mediaStylesCopy } = stylesCopy[key];
-      // this will contain the main style and all applicapble media query styles
+      // this will contain the main style and all applicable media and container query styles
       const mediaStylesArray = [resolveThemeVariables({ ...main }, theme, windowDimensions)];
       for (const mediaRule in mediaStylesCopy) {
-        if (matchMediaRule(mediaRule, theme, windowDimensions)) {
+        if(matchQueryRule(mediaRule, theme, windowDimensions, containerDimensions.height > 0 ? containerDimensions : undefined)) {
           mediaStylesArray.push(
             resolveThemeVariables({ ...mediaStylesCopy[mediaRule] }, theme, windowDimensions)
           );
@@ -164,7 +176,7 @@ const useStyleSheet = (
       finalStyles[key] = Object.assign({}, ...mediaStylesArray);
     }
     return StyleSheet.create(finalStyles);
-  }, [styles, theme, windowDimensions]);
+  }, [styles, theme, windowDimensions, containerDimensions]);
 };
 
 export type OptionalKeys<T> = Exclude<
@@ -203,15 +215,31 @@ export const makeTemplateFunction = <
     const styles = createNestedStyleObject(cssString);
     StyledForwardRefRenderFunction = (
       // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore ts doesn't understand that A is not allwoed to declar children and style
+      // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
       { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
       ref
     ) => {
       const theme = useTheme();
       const dimensions = useWindowDimensions();
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions);
+      const componentDimensions = useContainerDimensions();
+
+      //if no container is provided, @container query uses window dimensions
+      const containerDimensions = useContext(ContainerSizeContext) ?? dimensions;
+      const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.containerName || s.main.container)
+      
+      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
+
+      if(isContainer) {
+        return (
+          <ContainerSizeContext.Provider value = {componentDimensions[0]}>
+            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={componentDimensions[1]}>
+              {children}
+            </Component>
+          </ContainerSizeContext.Provider>
+        );
+      }
       return (
         <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
           {children}
@@ -222,18 +250,19 @@ export const makeTemplateFunction = <
     // if the cssString depends on props, we can at least ignore changes to children
     StyledForwardRefRenderFunction = (
       // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore ts doesn't understand that A is not allwoed to declar children and style
+      // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
       { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
       ref
     ) => {
       const theme = useTheme();
       const dimensions = useWindowDimensions();
+      const containerDimensions = useContainerDimensions();
       const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
       const cssString = useMemo(() => {
         return resolveTemplateLiteral(strings, expressions, transformedProps);
       }, [transformedProps]);
       const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions);
+      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions[0]);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       return (
         <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
@@ -251,6 +280,7 @@ export const makeTemplateFunction = <
 export const useStyle = (cssDeclaration: string): Style => {
   const theme = useTheme();
   const dimensions = useWindowDimensions();
+  const containerDimensions = useContainerDimensions()[0];
   const styles = useMemo(() => createNestedStyleObject(cssDeclaration.trim()), []);
-  return useStyleSheet(styles, theme, dimensions).style;
+  return useStyleSheet(styles, theme, dimensions, containerDimensions).style;
 };
