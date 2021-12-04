@@ -70,7 +70,7 @@ describe('typings', () => {
     const inputRef = React.createRef<TextInput>();
     const textRef = React.createRef<Text>();
     const undefinedRef = React.createRef();
-    // @ts-expect-error missin elevation prop
+    // @ts-expect-error missing elevation prop
     expectTypeError(<StyledWithRef required="foo" />);
     // @ts-expect-error missing label prop
     expectTypeError(<StyledWithRef elevation={1} />);

@@ -152,7 +152,7 @@ const useStyleSheet = (
     const stylesCopy = { ...styles };
     for (const key in stylesCopy) {
       const { main, ...mediaStylesCopy } = stylesCopy[key];
-      // this will contain the main style and all applicapble media query styles
+      // this will contain the main style and all applicable media query styles
       const mediaStylesArray = [resolveThemeVariables({ ...main }, theme, windowDimensions)];
       for (const mediaRule in mediaStylesCopy) {
         if (matchMediaRule(mediaRule, theme, windowDimensions)) {
@@ -203,7 +203,7 @@ export const makeTemplateFunction = <
     const styles = createNestedStyleObject(cssString);
     StyledForwardRefRenderFunction = (
       // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore ts doesn't understand that A is not allwoed to declar children and style
+      // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
       { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
       ref
     ) => {
@@ -222,7 +222,7 @@ export const makeTemplateFunction = <
     // if the cssString depends on props, we can at least ignore changes to children
     StyledForwardRefRenderFunction = (
       // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore ts doesn't understand that A is not allwoed to declar children and style
+      // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
       { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
       ref
     ) => {
