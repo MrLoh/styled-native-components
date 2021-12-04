@@ -1,3 +1,5 @@
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 import * as React from 'react';
 import { expectType, expectError as expectTypeError } from 'tsd';
 import { Text, TextInput } from 'react-native';

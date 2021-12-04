@@ -72,6 +72,7 @@ const viewPropNames = [
   'onTouchEnd',
   'onTouchCancel',
   'onTouchEndCapture',
+  'children',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
 const viewPropNamesWithEnsuredCompleteKeys: readonly typeof viewPropNames[number][] = viewPropNames as readonly ViewPropName[];
@@ -100,6 +101,12 @@ const textPropNames = [
   'pointerEvents',
   'lineBreakMode',
   'maxFontSizeMultiplier',
+  'children',
+  'onTextLayout',
+  'onPressIn',
+  'onPressOut',
+  'dataDetectorType',
+  'android_hyphenationFrequency',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
 const textPropNamesWithEnsuredCompleteKeys: readonly typeof textPropNames[number][] = textPropNames as readonly TextPropName[];
@@ -137,6 +144,7 @@ const imagePropNames = [
   'fadeDuration',
   'pointerEvents',
   'progressiveRenderingEnabled',
+  'nativeID',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
 const imagePropNamesWithEnsuredCompleteKeys: readonly typeof imagePropNames[number][] = imagePropNames as readonly ImagePropName[];
@@ -238,6 +246,9 @@ const listPropNames = [
   'onScrollToTop',
   'fadingEdgeLength',
   'persistentScrollbar',
+  'stickyHeaderHiddenOnScroll',
+  'StickyHeaderComponent',
+  'maintainVisibleContentPosition',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
 const listPropNamesWithEnsuredCompleteKeys: readonly typeof listPropNames[number][] = listPropNames as readonly ListPropName[];
@@ -302,6 +313,10 @@ const inputPropNames = [
   'importantForAutofill',
   'textAlignVertical',
   'showSoftInputOnFocus',
+  'onPressIn',
+  'onPressOut',
+  'textAlign',
+  'autoComplete',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
 const inputPropNamesWithEnsuredCompleteKeys: readonly typeof inputPropNames[number][] = inputPropNames as readonly InputPropName[];
@@ -328,6 +343,12 @@ const pressablePropNames = [
   'android_ripple',
   'testOnly_pressed',
   'touchSoundDisabled',
+  'cancelable',
+  'nextFocusDown',
+  'nextFocusForward',
+  'nextFocusLeft',
+  'nextFocusRight',
+  'nextFocusUp',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
 const pressablePropNamesWithEnsuredCompleteKeys: readonly typeof pressablePropNames[number][] = pressablePropNames as readonly PressablePropName[];
