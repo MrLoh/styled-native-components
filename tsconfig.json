@@ -1,12 +1,13 @@
 {
-  "include": ["src", "types"],
+  "include": ["src", "types", "tests"],
+  "exclude": ["tests/test-helper.tsx"],
   "compilerOptions": {
     "module": "esnext",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

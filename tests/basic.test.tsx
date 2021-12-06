@@ -13,7 +13,7 @@ describe.only('basic styles', () => {
     (useWindowDimensions as jest.Mock).mockClear();
   });
 
-  it('genereates a style prop', () => {
+  it('generates a style prop', () => {
     const StyledComponent = styled.View`
       color: red;
     `;

@@ -1,3 +1,5 @@
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 import * as React from 'react';
 import { expectType, expectError as expectTypeError } from 'tsd';
 import { Text, TextInput } from 'react-native';
@@ -70,7 +72,7 @@ describe('typings', () => {
     const inputRef = React.createRef<TextInput>();
     const textRef = React.createRef<Text>();
     const undefinedRef = React.createRef();
-    // @ts-expect-error missin elevation prop
+    // @ts-expect-error missing elevation prop
     expectTypeError(<StyledWithRef required="foo" />);
     // @ts-expect-error missing label prop
     expectTypeError(<StyledWithRef elevation={1} />);

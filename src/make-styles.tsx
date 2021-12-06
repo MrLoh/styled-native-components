@@ -78,7 +78,7 @@ const createStyleObject = (cssDeclaration?: string): Style => {
           try {
             return getStylesForProperty(getPropertyName(name), resolvedValue);
           } catch (e) {
-            throw new Error(`could not parse '${name}: ${value}'\n${e}`);
+            throw new Error(`could not parse '${name}: ${value}'\n${(e as Error).message}`);
           }
         })
     ) as Style;
@@ -164,7 +164,7 @@ const useStyleSheet = (
     const stylesCopy = { ...styles };
     for (const key in stylesCopy) {
       const { main, ...mediaStylesCopy } = stylesCopy[key];
-      // this will contain the main style and all applicable media and container query styles
+      // this will contain the main style and all applicable media query styles
       const mediaStylesArray = [resolveThemeVariables({ ...main }, theme, windowDimensions)];
       for (const mediaRule in mediaStylesCopy) {
         if(matchQueryRule(mediaRule, theme, windowDimensions, containerDimensions.height > 0 ? containerDimensions : undefined)) {
@@ -207,7 +207,7 @@ export const makeTemplateFunction = <
   strings: TemplateStringsArray,
   ...expressions: TemplateStringExpression<AttrProps<P, I, A> & A>[]
 ): ComponentType<Omit<P & I, RequiredKeys<A>>> => {
-  const displayName = `Styled(${Component.displayName || Component.name})`;
+  const displayName = 'Styled(' + Component.displayName || Component.name + ')';
   let StyledForwardRefRenderFunction: ForwardRefRenderFunction<any, Omit<P & I, RequiredKeys<A>>>;
   if (expressions.every((exp) => typeof exp === 'string')) {
     // if no props are used in the styles, then we can statically generate the cssString
@@ -280,7 +280,6 @@ export const makeTemplateFunction = <
 export const useStyle = (cssDeclaration: string): Style => {
   const theme = useTheme();
   const dimensions = useWindowDimensions();
-  const containerDimensions = useContainerDimensions()[0];
-  const styles = useMemo(() => createNestedStyleObject(cssDeclaration.trim()), []);
-  return useStyleSheet(styles, theme, dimensions, containerDimensions).style;
+  const styles = useMemo(() => createNestedStyleObject(cssDeclaration.trim()), [cssDeclaration]);
+  return useStyleSheet(styles, theme, dimensions).style;
 };
