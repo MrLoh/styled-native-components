@@ -16,3 +16,7 @@ export const StyleSheet = {
   flatten: (styles: Style[]) => Object.assign({}, ...styles),
 };
 export const Platform = { OS: 'test' };
+export const Dimensions = {
+  get: jest.fn(() => ({ width: 100, height: 100, scale: 1, fontScale: 1 })),
+  addEventListener: jest.fn(() => {}),
+};

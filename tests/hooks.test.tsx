@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
 import { View, Text } from 'react-native';
 

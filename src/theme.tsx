@@ -111,8 +111,8 @@ export const resolveColorVariablePlaceholder = (variableName: string): string =>
   return themeColors.hexForVarName.get(variableName)!;
 };
 
-// resolve any occurences of theme variables in the values of a style object
-const plattformIsWeb = Platform.OS === 'web';
+// resolve any occurrences of theme variables in the values of a style object
+const platformIsWeb = Platform.OS === 'web';
 
 export const resolveLengthUnit = (
   str: string | number | undefined,
@@ -155,7 +155,7 @@ export const resolveThemeVariables = (
         styleObject[shadowKey] = shadowStyleObject[shadowKey];
       }
     }
-    if (key === 'cursor' && !plattformIsWeb) delete styleObject.cursor;
+    if (key === 'cursor' && !platformIsWeb) delete styleObject.cursor;
     // resolve all color names to theme variables if possible
     if (colorAttributes.has(key)) {
       const colorName = themeColors.nameForHex.get(styleObject[key]);
@@ -171,7 +171,7 @@ export const resolveThemeVariables = (
       }
     }
     // resolve all rem and viewport units unless on web where they are supported natively
-    if (!plattformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
+    if (!platformIsWeb && lengthAttributes.has(key) && typeof styleObject[key] === 'string') {
       styleObject[key] = resolveLengthUnit(styleObject[key], theme, windowDimensions);
     }
   }
