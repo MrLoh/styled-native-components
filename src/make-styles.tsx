@@ -2,7 +2,8 @@ import React, { useMemo, forwardRef, memo, createContext, useContext } from 'rea
 import { LayoutChangeEvent, StyleSheet } from 'react-native';
 import { getPropertyName, getStylesForProperty } from 'css-to-react-native';
 
-import { useContainerDimensions, useWindowDimensions } from './window-dimensions';
+import { useWindowDimensions } from './window-dimensions';
+import { useComponentDimensions } from './container-dimensions';
 import {
   resolveColorVariablePlaceholder,
   resolveThemeVariables,
@@ -105,33 +106,38 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
         mainDeclaration += cssDeclaration.substring(start, match.index);
         start = match.index + match[0].length;
         name = cssDeclaration.substring(match.index, match.index + match[0].length - 1).trim();
+        console.log("name", name);
       }
       nOpen = nOpen + (match[0] === '}' ? -1 : +1);
       if (nOpen === 0) {
         const declaration = cssDeclaration.substring(start, match.index).trim();
         start = match.index + 1;
-        const [, atRule, mediaFeatures] = name!.match(/(@(?:media|container)).*?(\(.*?\))/)?? [];
-        if(atRule) {
-          nestedStyleObject.style[mediaFeatures!] = createStyleObject(declaration);
-          continue;
+        if (name!.startsWith('@media')) {
+          nestedStyleObject.style[name!] = createStyleObject(declaration);
+          console.log("media separations", nestedStyleObject.style[name!]);
+        } else if (name!.startsWith('@container')) {
+          nestedStyleObject.style[name!] = createStyleObject(declaration);
+          console.log("container separations", nestedStyleObject.style[name!]);
+        } else {
+          nestedStyleObject[name! + 'Style'] = createNestedStyleObject(declaration).style;
         }
-        nestedStyleObject[name! + 'Style'] = createNestedStyleObject(declaration).style;
       }
     }
     mainDeclaration += cssDeclaration.substring(start, cssDeclaration.length);
     nestedStyleObject.style.main = createStyleObject(mainDeclaration.trim());
     nestedStyleObjectsCache.set(cssDeclaration, nestedStyleObject);
+    console.log("nestedStyleObj", nestedStyleObject);
   }
   return nestedStyleObject;
 };
 
-const matchQueryRule = (rule: string, theme: Theme, windowDimensions: ScaledSize, containerDimensions?: GenericSize): boolean => {
+const matchQueryRule = (queryType: string, rule: string, theme: Theme, windowDimensions: ScaledSize, containerDimensions?: GenericSize): boolean => {
   let matched = true;
   for (const condition of rule.split('and')) {
     const [name, strVal] = condition.replace(/\(|\)/g, '').trim().split(':');
     const value = resolveLengthUnit(strVal, theme, windowDimensions);
     if (typeof value !== 'number') throw new Error(`invalid unit on @media/@container ${rule}`);
-    const { width, height } = containerDimensions ? containerDimensions : windowDimensions;
+    const { width, height } = queryType === '@container' && containerDimensions ? containerDimensions : windowDimensions;
     switch (name) {
       case 'min-width':
         matched = matched && width >= value;
@@ -167,7 +173,7 @@ const useStyleSheet = (
       // this will contain the main style and all applicable media query styles
       const mediaStylesArray = [resolveThemeVariables({ ...main }, theme, windowDimensions)];
       for (const mediaRule in mediaStylesCopy) {
-        if(matchQueryRule(mediaRule, theme, windowDimensions, containerDimensions !== undefined && containerDimensions?.height > 0 ? containerDimensions : undefined)) {
+        if(matchQueryRule(mediaRule.substring(0, mediaRule.indexOf(' ')), mediaRule.substring(mediaRule.indexOf(' ')), theme, windowDimensions, containerDimensions !== undefined && containerDimensions?.height > 0 ? containerDimensions : undefined)) {
           mediaStylesArray.push(
             resolveThemeVariables({ ...mediaStylesCopy[mediaRule] }, theme, windowDimensions)
           );
@@ -221,20 +227,28 @@ export const makeTemplateFunction = <
     ) => {
       const theme = useTheme();
       const dimensions = useWindowDimensions();
-      const componentDimensions = useContainerDimensions();
+      const [componentDimensions, layoutEvent] = useComponentDimensions();
 
-      //if no container is provided, @container query uses window dimensions
-      const containerDimensions = useContext(ContainerSizeContext) ?? dimensions;
-      const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.containerName || s.main.container)
+      //if no container is provided, @container query should not be applied
+      const containerDimensions = useContext(ContainerSizeContext) ?? undefined;
+      const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.container);
       
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions);
+      if(Object.values(styles).some((s) => s.main.containName)) {
+        throw new Error('Container-name is not currently supported by styled-native-components');
+      }
+
+      // console.log("isContainer ", isContainer);
+      // console.log("Component Dimensions height ", componentDimensions[0].height);
+      // console.log("Component Dimensions width ", componentDimensions[0].width);
+
+      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions ? containerDimensions : undefined);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
 
       if(isContainer) {
         return (
-          <ContainerSizeContext.Provider value = {componentDimensions[0]}>
-            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={componentDimensions[1]}>
+          <ContainerSizeContext.Provider value = {componentDimensions}>
+            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={layoutEvent}>
               {children}
             </Component>
           </ContainerSizeContext.Provider>
@@ -256,14 +270,34 @@ export const makeTemplateFunction = <
     ) => {
       const theme = useTheme();
       const dimensions = useWindowDimensions();
-      const containerDimensions = useContainerDimensions();
+      const [componentDimensions, layoutEvent] = useComponentDimensions();
+
       const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
       const cssString = useMemo(() => {
         return resolveTemplateLiteral(strings, expressions, transformedProps);
       }, [transformedProps]);
       const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions[0]);
+
+      //if no container is provided, @container query should not be applied
+      const containerDimensions = useContext(ContainerSizeContext) ?? undefined;
+      const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.container);
+      
+      if(Object.values(styles).some((s) => s.main.containName)) {
+        throw new Error('Container-name is not currently supported by styled-native-components');
+      }
+
+      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions ? containerDimensions : undefined);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
+
+      if(isContainer) {
+        return (
+          <ContainerSizeContext.Provider value = {componentDimensions}>
+            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={layoutEvent}>
+              {children}
+            </Component>
+          </ContainerSizeContext.Provider>
+        );
+      }
       return (
         <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
           {children}
