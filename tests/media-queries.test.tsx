@@ -23,8 +23,8 @@ describe.only('media queries', () => {
     `);
     expect(Object.keys(nestedStyleObject.style)).toContain('main');
     expect(nestedStyleObject.style.main).toEqual({ width: 200 });
-    expect(Object.keys(nestedStyleObject.style)).toContain('(min-width: 200px)');
-    expect(nestedStyleObject.style['(min-width: 200px)']).toEqual({ width: 180 });
+    expect(Object.keys(nestedStyleObject.style)).toContain('@media (min-width: 200px)');
+    expect(nestedStyleObject.style['@media (min-width: 200px)']).toEqual({ width: 180 });
   });
 
   it('can parse deeply nested css', () => {
@@ -43,13 +43,13 @@ describe.only('media queries', () => {
     expect(Object.keys(nestedStyleObject)).toContain('style');
     expect(Object.keys(nestedStyleObject.style)).toContain('main');
     expect(nestedStyleObject.style.main).toEqual({ width: 200 });
-    expect(Object.keys(nestedStyleObject.style)).toContain('(min-width: 200px)');
-    expect(nestedStyleObject.style['(min-width: 200px)']).toEqual({ width: 180 });
+    expect(Object.keys(nestedStyleObject.style)).toContain('@media (min-width: 200px)');
+    expect(nestedStyleObject.style['@media (min-width: 200px)']).toEqual({ width: 180 });
     expect(Object.keys(nestedStyleObject)).toContain('contentContainerStyle');
     expect(Object.keys(nestedStyleObject.contentContainerStyle)).toContain('main');
     expect(nestedStyleObject.contentContainerStyle.main).toEqual({ width: 180 });
-    expect(Object.keys(nestedStyleObject.contentContainerStyle)).toContain('(min-width: 180px)');
-    expect(nestedStyleObject.contentContainerStyle['(min-width: 180px)']).toEqual({ width: 160 });
+    expect(Object.keys(nestedStyleObject.contentContainerStyle)).toContain('@media (min-width: 180px)');
+    expect(nestedStyleObject.contentContainerStyle['@media (min-width: 180px)']).toEqual({ width: 160 });
   });
 
   it('does support basic media queries', () => {

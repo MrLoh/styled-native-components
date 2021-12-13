@@ -20,7 +20,7 @@ describe.only('hooks', () => {
     (useWindowDimensions as jest.Mock).mockClear();
   });
 
-  it('has functional theme hook', () => {
+  it.only('has functional theme hook', () => {
     const Component = jest.fn(() => null) as React.ComponentType<{ styledTheme: unknown }>;
     const ComponentWithHook = () => {
       const styledTheme = useTheme();

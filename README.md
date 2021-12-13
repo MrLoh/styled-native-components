@@ -150,9 +150,34 @@ class Component extends React.Component {
 }
 ```
 
+### Queries
+
+The library supports both media and container queries.
+
+Currently, this library support container queries in their most basic forms - meaning, you cannot use named containers with this library.
+
+As noted here (https://github.com/w3c/csswg-drafts/issues/6178), if there is no container context provided, the container query will not be applied. Instead, container queries should always be given a context such as seen below:
+
+```js
+const StyledContainerComponent = styled.Component`
+  contain: layout;
+`;
+
+const StyledComponentWithContainerQuery = styled.Text`
+  font-size: 12px;
+  @container (max-width: 100px) {
+    font-size: 10px;
+  }
+`;
+
+<StyledContainerComponent>
+  <StyledComponentWithContainerQuery/>
+</StyledContainerComponent>
+```
+
 #### Typescript
 
-The library is fully typed. You can set the Theme Context by redeclaring the `Theme` interface of this library the same way you would do for the original styled components library. Your default theme should implement the following interfact:
+The library is fully typed. You can set the Theme Context by redeclaring the `Theme` interface of this library the same way you would do for the original styled components library. Your default theme should implement the following interface:
 
 ```ts
 interface ThemeInterface {

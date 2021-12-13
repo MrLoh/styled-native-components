@@ -1,8 +1,9 @@
 import React, { useMemo, forwardRef, memo, createContext, useContext } from 'react';
-import { LayoutChangeEvent, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { getPropertyName, getStylesForProperty } from 'css-to-react-native';
 
 import { useWindowDimensions } from './window-dimensions';
+import type { GenericSize } from './container-dimensions';
 import { useComponentDimensions } from './container-dimensions';
 import {
   resolveColorVariablePlaceholder,
@@ -15,9 +16,6 @@ import type { ForwardRefRenderFunction, ReactNode, ComponentType } from 'react';
 import type { StyleProp, ScaledSize } from 'react-native';
 import type { Style } from 'css-to-react-native';
 import type { Theme } from './theme';
-
-export type GenericSize = { height: number; width: number };
-export type ComponentSizeChanges = [GenericSize, (event: LayoutChangeEvent) => void];
 
 //Setting up Container Query Context
 export let ContainerSizeContext = createContext(null) as React.Context<GenericSize | null>;
@@ -58,6 +56,7 @@ const resolveTemplateLiteral: {
 const variableRegexp = new RegExp('\\$[\\w|-]+', 'g');
 const styleObjectCache = new Map<string, Style>([]);
 const createStyleObject = (cssDeclaration?: string): Style => {
+  console.log("css", cssDeclaration);
   if (!cssDeclaration) return {};
   let styleObject = styleObjectCache.get(cssDeclaration);
   if (!styleObject) {
@@ -85,6 +84,7 @@ const createStyleObject = (cssDeclaration?: string): Style => {
     ) as Style;
     styleObjectCache.set(cssDeclaration, styleObject);
   }
+  console.log("styleObj", styleObject);
   return styleObject;
 };
 
@@ -126,8 +126,8 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
     mainDeclaration += cssDeclaration.substring(start, cssDeclaration.length);
     nestedStyleObject.style.main = createStyleObject(mainDeclaration.trim());
     nestedStyleObjectsCache.set(cssDeclaration, nestedStyleObject);
-    console.log("nestedStyleObj", nestedStyleObject);
   }
+  console.log("nestedStyleObj", nestedStyleObject);
   return nestedStyleObject;
 };
 
@@ -137,6 +137,7 @@ const matchQueryRule = (queryType: string, rule: string, theme: Theme, windowDim
     const [name, strVal] = condition.replace(/\(|\)/g, '').trim().split(':');
     const value = resolveLengthUnit(strVal, theme, windowDimensions);
     if (typeof value !== 'number') throw new Error(`invalid unit on @media/@container ${rule}`);
+    if (queryType === '@container' && !containerDimensions) { return false; }
     const { width, height } = queryType === '@container' && containerDimensions ? containerDimensions : windowDimensions;
     switch (name) {
       case 'min-width':
@@ -230,16 +231,16 @@ export const makeTemplateFunction = <
       const [componentDimensions, layoutEvent] = useComponentDimensions();
 
       //if no container is provided, @container query should not be applied
-      const containerDimensions = useContext(ContainerSizeContext) ?? undefined;
+      const containerDimensions = useContext(ContainerSizeContext);
       const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.container);
       
       if(Object.values(styles).some((s) => s.main.containName)) {
         throw new Error('Container-name is not currently supported by styled-native-components');
       }
 
-      // console.log("isContainer ", isContainer);
-      // console.log("Component Dimensions height ", componentDimensions[0].height);
-      // console.log("Component Dimensions width ", componentDimensions[0].width);
+       console.log("isContainer ", isContainer);
+       //console.log("Component Dimensions height ", componentDimensions.height);
+       //console.log("Component Dimensions width ", componentDimensions.width);
 
       let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions ? containerDimensions : undefined);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
@@ -247,7 +248,7 @@ export const makeTemplateFunction = <
 
       if(isContainer) {
         return (
-          <ContainerSizeContext.Provider value = {componentDimensions}>
+          <ContainerSizeContext.Provider value={componentDimensions}>
             <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={layoutEvent}>
               {children}
             </Component>
@@ -279,7 +280,7 @@ export const makeTemplateFunction = <
       const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
 
       //if no container is provided, @container query should not be applied
-      const containerDimensions = useContext(ContainerSizeContext) ?? undefined;
+      const containerDimensions = useContext(ContainerSizeContext);
       const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.container);
       
       if(Object.values(styles).some((s) => s.main.containName)) {
@@ -291,7 +292,7 @@ export const makeTemplateFunction = <
 
       if(isContainer) {
         return (
-          <ContainerSizeContext.Provider value = {componentDimensions}>
+          <ContainerSizeContext.Provider value={componentDimensions}>
             <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={layoutEvent}>
               {children}
             </Component>
