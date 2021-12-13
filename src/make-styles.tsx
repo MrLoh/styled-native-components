@@ -56,7 +56,6 @@ const resolveTemplateLiteral: {
 const variableRegexp = new RegExp('\\$[\\w|-]+', 'g');
 const styleObjectCache = new Map<string, Style>([]);
 const createStyleObject = (cssDeclaration?: string): Style => {
-  console.log("css", cssDeclaration);
   if (!cssDeclaration) return {};
   let styleObject = styleObjectCache.get(cssDeclaration);
   if (!styleObject) {
@@ -84,7 +83,6 @@ const createStyleObject = (cssDeclaration?: string): Style => {
     ) as Style;
     styleObjectCache.set(cssDeclaration, styleObject);
   }
-  console.log("styleObj", styleObject);
   return styleObject;
 };
 
@@ -106,7 +104,6 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
         mainDeclaration += cssDeclaration.substring(start, match.index);
         start = match.index + match[0].length;
         name = cssDeclaration.substring(match.index, match.index + match[0].length - 1).trim();
-        console.log("name", name);
       }
       nOpen = nOpen + (match[0] === '}' ? -1 : +1);
       if (nOpen === 0) {
@@ -114,10 +111,8 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
         start = match.index + 1;
         if (name!.startsWith('@media')) {
           nestedStyleObject.style[name!] = createStyleObject(declaration);
-          console.log("media separations", nestedStyleObject.style[name!]);
         } else if (name!.startsWith('@container')) {
           nestedStyleObject.style[name!] = createStyleObject(declaration);
-          console.log("container separations", nestedStyleObject.style[name!]);
         } else {
           nestedStyleObject[name! + 'Style'] = createNestedStyleObject(declaration).style;
         }
@@ -127,7 +122,6 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
     nestedStyleObject.style.main = createStyleObject(mainDeclaration.trim());
     nestedStyleObjectsCache.set(cssDeclaration, nestedStyleObject);
   }
-  console.log("nestedStyleObj", nestedStyleObject);
   return nestedStyleObject;
 };
 
@@ -153,7 +147,6 @@ const matchQueryRule = (queryType: string, rule: string, theme: Theme, windowDim
         matched = matched && height <= value;
         break;
     }
-    // console.log('matching', condition, value, windowDimensions, matched);
   }
   return matched;
 };
@@ -237,11 +230,6 @@ export const makeTemplateFunction = <
       if(Object.values(styles).some((s) => s.main.containName)) {
         throw new Error('Container-name is not currently supported by styled-native-components');
       }
-
-       console.log("isContainer ", isContainer);
-       //console.log("Component Dimensions height ", componentDimensions.height);
-       //console.log("Component Dimensions width ", componentDimensions.width);
-
       let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions ? containerDimensions : undefined);
       styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
       const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
