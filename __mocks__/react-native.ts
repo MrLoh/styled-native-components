@@ -29,5 +29,5 @@ export const Dimensions = {
 export const useComponentDimensions = {
   height: 110,
   width: 100,
-  event: jest.fn(() => {})
+  event: jest.fn(() => {}),
 };

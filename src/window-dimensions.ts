@@ -29,4 +29,3 @@ export const useWindowDimensions = (): ScaledSize => {
   }, []);
   return dimensions;
 };
-

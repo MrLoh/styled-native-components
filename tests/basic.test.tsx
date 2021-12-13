@@ -8,8 +8,8 @@ jest.mock('../src/window-dimensions.ts');
 
 describe.only('basic styles', () => {
   beforeEach(() => {
-    ((View as unknown) as jest.Mock).mockClear();
-    ((ScrollView as unknown) as jest.Mock).mockClear();
+    (View as unknown as jest.Mock).mockClear();
+    (ScrollView as unknown as jest.Mock).mockClear();
     (useWindowDimensions as jest.Mock).mockClear();
   });
 

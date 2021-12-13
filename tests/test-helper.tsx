@@ -14,9 +14,7 @@ declare module '../src' {
       background: string;
       text: string;
     };
-    elevation: (
-      value: number
-    ) => {
+    elevation: (value: number) => {
       shadowColor: string;
       shadowOffset: { width: number; height: number };
       shadowRadius: number;

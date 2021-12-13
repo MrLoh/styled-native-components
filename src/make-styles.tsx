@@ -20,7 +20,9 @@ import type { Theme } from './theme';
 //Setting up Container Query Context
 export let ContainerSizeContext = createContext(null) as React.Context<GenericSize | null>;
 
-export const setContainerContext = (ExternalContainerContext: React.Context<GenericSize | null>) => {
+export const setContainerContext = (
+  ExternalContainerContext: React.Context<GenericSize | null>
+) => {
   ContainerSizeContext = ExternalContainerContext;
 };
 
@@ -125,14 +127,23 @@ export const createNestedStyleObject = (cssDeclaration: string): NestedStyles =>
   return nestedStyleObject;
 };
 
-const matchQueryRule = (queryType: string, rule: string, theme: Theme, windowDimensions: ScaledSize, containerDimensions?: GenericSize): boolean => {
+const matchQueryRule = (
+  queryType: string,
+  rule: string,
+  theme: Theme,
+  windowDimensions: ScaledSize,
+  containerDimensions?: GenericSize
+): boolean => {
   let matched = true;
   for (const condition of rule.split('and')) {
     const [name, strVal] = condition.replace(/\(|\)/g, '').trim().split(':');
     const value = resolveLengthUnit(strVal, theme, windowDimensions);
     if (typeof value !== 'number') throw new Error(`invalid unit on @media/@container ${rule}`);
-    if (queryType === '@container' && !containerDimensions) { return false; }
-    const { width, height } = queryType === '@container' && containerDimensions ? containerDimensions : windowDimensions;
+    if (queryType === '@container' && !containerDimensions) {
+      return false;
+    }
+    const { width, height } =
+      queryType === '@container' && containerDimensions ? containerDimensions : windowDimensions;
     switch (name) {
       case 'min-width':
         matched = matched && width >= value;
@@ -156,7 +167,7 @@ const useStyleSheet = (
   styles: NestedStyles,
   theme: Theme,
   windowDimensions: ScaledSize,
-  containerDimensions?: GenericSize,
+  containerDimensions?: GenericSize
 ): { [key: string]: Style } => {
   return useMemo(() => {
     const finalStyles: { [key: string]: Style } = {};
@@ -167,7 +178,17 @@ const useStyleSheet = (
       // this will contain the main style and all applicable media query styles
       const mediaStylesArray = [resolveThemeVariables({ ...main }, theme, windowDimensions)];
       for (const mediaRule in mediaStylesCopy) {
-        if(matchQueryRule(mediaRule.substring(0, mediaRule.indexOf(' ')), mediaRule.substring(mediaRule.indexOf(' ')), theme, windowDimensions, containerDimensions !== undefined && containerDimensions?.height > 0 ? containerDimensions : undefined)) {
+        if (
+          matchQueryRule(
+            mediaRule.substring(0, mediaRule.indexOf(' ')),
+            mediaRule.substring(mediaRule.indexOf(' ')),
+            theme,
+            windowDimensions,
+            containerDimensions !== undefined && containerDimensions?.height > 0
+              ? containerDimensions
+              : undefined
+          )
+        ) {
           mediaStylesArray.push(
             resolveThemeVariables({ ...mediaStylesCopy[mediaRule] }, theme, windowDimensions)
           );
@@ -195,110 +216,136 @@ export type AttrProps<P, I, A> = Omit<P & I, RequiredKeys<A> | 'children' | 'sty
   theme: Theme;
 };
 
-export const makeTemplateFunction = <
-  I extends { style?: StyleProp<any>; children?: ReactNode },
-  P = {},
-  A extends { children?: never; style?: never } = {}
->(
-  Component: ComponentType<I>,
-  transformProps: (p: AttrProps<P, I, A>) => AttrProps<P, I, A> & A,
-  filterComponentProps: (props: any) => I
-): TemplateFunction<I, P, A> => (
-  strings: TemplateStringsArray,
-  ...expressions: TemplateStringExpression<AttrProps<P, I, A> & A>[]
-): ComponentType<Omit<P & I, RequiredKeys<A>>> => {
-  const displayName = 'Styled(' + Component.displayName || Component.name + ')';
-  let StyledForwardRefRenderFunction: ForwardRefRenderFunction<any, Omit<P & I, RequiredKeys<A>>>;
-  if (expressions.every((exp) => typeof exp === 'string')) {
-    // if no props are used in the styles, then we can statically generate the cssString
-    const cssString = resolveTemplateLiteral(strings, expressions as string[]);
-    const styles = createNestedStyleObject(cssString);
-    StyledForwardRefRenderFunction = (
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
-      { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
-      ref
-    ) => {
-      const theme = useTheme();
-      const dimensions = useWindowDimensions();
-      const [componentDimensions, layoutEvent] = useComponentDimensions();
+export const makeTemplateFunction =
+  <
+    I extends { style?: StyleProp<any>; children?: ReactNode },
+    P = {},
+    A extends { children?: never; style?: never } = {}
+  >(
+    Component: ComponentType<I>,
+    transformProps: (p: AttrProps<P, I, A>) => AttrProps<P, I, A> & A,
+    filterComponentProps: (props: any) => I
+  ): TemplateFunction<I, P, A> =>
+  (
+    strings: TemplateStringsArray,
+    ...expressions: TemplateStringExpression<AttrProps<P, I, A> & A>[]
+  ): ComponentType<Omit<P & I, RequiredKeys<A>>> => {
+    const displayName = 'Styled(' + Component.displayName || Component.name + ')';
+    let StyledForwardRefRenderFunction: ForwardRefRenderFunction<any, Omit<P & I, RequiredKeys<A>>>;
+    if (expressions.every((exp) => typeof exp === 'string')) {
+      // if no props are used in the styles, then we can statically generate the cssString
+      const cssString = resolveTemplateLiteral(strings, expressions as string[]);
+      const styles = createNestedStyleObject(cssString);
+      StyledForwardRefRenderFunction = (
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
+        { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
+        ref
+      ) => {
+        const theme = useTheme();
+        const dimensions = useWindowDimensions();
+        const [componentDimensions, layoutEvent] = useComponentDimensions();
 
-      //if no container is provided, @container query should not be applied
-      const containerDimensions = useContext(ContainerSizeContext);
-      const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.container);
-      
-      if(Object.values(styles).some((s) => s.main.containName)) {
-        throw new Error('Container-name is not currently supported by styled-native-components');
-      }
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions ? containerDimensions : undefined);
-      styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
-      const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
-
-      if(isContainer) {
-        return (
-          <ContainerSizeContext.Provider value={componentDimensions}>
-            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={layoutEvent}>
-              {children}
-            </Component>
-          </ContainerSizeContext.Provider>
+        //if no container is provided, @container query should not be applied
+        const containerDimensions = useContext(ContainerSizeContext);
+        const isContainer = Object.values(styles).some(
+          (s) => s.main.contain || s.main.containerType || s.main.container
         );
-      }
-      return (
-        <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
-          {children}
-        </Component>
-      );
-    };
-  } else {
-    // if the cssString depends on props, we can at least ignore changes to children
-    StyledForwardRefRenderFunction = (
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
-      { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
-      ref
-    ) => {
-      const theme = useTheme();
-      const dimensions = useWindowDimensions();
-      const [componentDimensions, layoutEvent] = useComponentDimensions();
 
-      const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
-      const cssString = useMemo(() => {
-        return resolveTemplateLiteral(strings, expressions, transformedProps);
-      }, [transformedProps]);
-      const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
-
-      //if no container is provided, @container query should not be applied
-      const containerDimensions = useContext(ContainerSizeContext);
-      const isContainer = Object.values(styles).some((s) => s.main.contain || s.main.containerType || s.main.container);
-      
-      if(Object.values(styles).some((s) => s.main.containName)) {
-        throw new Error('Container-name is not currently supported by styled-native-components');
-      }
-
-      let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(styles, theme, dimensions, containerDimensions ? containerDimensions : undefined);
-      styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
-
-      if(isContainer) {
-        return (
-          <ContainerSizeContext.Provider value={componentDimensions}>
-            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref} onLayout={layoutEvent}>
-              {children}
-            </Component>
-          </ContainerSizeContext.Provider>
+        if (Object.values(styles).some((s) => s.main.containName)) {
+          throw new Error('Container-name is not currently supported by styled-native-components');
+        }
+        let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(
+          styles,
+          theme,
+          dimensions,
+          containerDimensions ? containerDimensions : undefined
         );
-      }
-      return (
-        <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
-          {children}
-        </Component>
-      );
-    };
-  }
-  StyledForwardRefRenderFunction.displayName = displayName;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-  // @ts-ignore ts gets confused in HOC wrappers but the declared return type has the proper refs
-  return memo(forwardRef(StyledForwardRefRenderFunction));
-};
+        styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
+        const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
+
+        if (isContainer) {
+          return (
+            <ContainerSizeContext.Provider value={componentDimensions}>
+              <Component
+                {...filterComponentProps(transformedProps)}
+                {...styleProps}
+                ref={ref}
+                onLayout={layoutEvent}
+              >
+                {children}
+              </Component>
+            </ContainerSizeContext.Provider>
+          );
+        }
+        return (
+          <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
+            {children}
+          </Component>
+        );
+      };
+    } else {
+      // if the cssString depends on props, we can at least ignore changes to children
+      StyledForwardRefRenderFunction = (
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore ts doesn't understand that A is not allowed to declare children and style
+        { children, style, ...props }: Omit<P & I, RequiredKeys<A>>,
+        ref
+      ) => {
+        const theme = useTheme();
+        const dimensions = useWindowDimensions();
+        const [componentDimensions, layoutEvent] = useComponentDimensions();
+
+        const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
+        const cssString = useMemo(() => {
+          return resolveTemplateLiteral(strings, expressions, transformedProps);
+        }, [transformedProps]);
+        const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
+
+        //if no container is provided, @container query should not be applied
+        const containerDimensions = useContext(ContainerSizeContext);
+        const isContainer = Object.values(styles).some(
+          (s) => s.main.contain || s.main.containerType || s.main.container
+        );
+
+        if (Object.values(styles).some((s) => s.main.containName)) {
+          throw new Error('Container-name is not currently supported by styled-native-components');
+        }
+
+        let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(
+          styles,
+          theme,
+          dimensions,
+          containerDimensions ? containerDimensions : undefined
+        );
+        styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
+
+        if (isContainer) {
+          return (
+            <ContainerSizeContext.Provider value={componentDimensions}>
+              <Component
+                {...filterComponentProps(transformedProps)}
+                {...styleProps}
+                ref={ref}
+                onLayout={layoutEvent}
+              >
+                {children}
+              </Component>
+            </ContainerSizeContext.Provider>
+          );
+        }
+        return (
+          <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
+            {children}
+          </Component>
+        );
+      };
+    }
+    StyledForwardRefRenderFunction.displayName = displayName;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore ts gets confused in HOC wrappers but the declared return type has the proper refs
+    return memo(forwardRef(StyledForwardRefRenderFunction));
+  };
 
 export const useStyle = (cssDeclaration: string): Style => {
   const theme = useTheme();
