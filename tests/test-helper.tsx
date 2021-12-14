@@ -1,9 +1,8 @@
 import React from 'react';
-import TestRenderer from 'react-test-renderer';
+import { create, act } from 'react-test-renderer';
 import { ThemeProvider } from '../src';
 
 import type { ReactNode } from 'react';
-import type { ReactTestRenderer } from 'react-test-renderer';
 import type { Theme } from '../src';
 
 declare module '../src' {
@@ -44,5 +43,14 @@ export const theme: Theme = {
   borderRadius: ['0.5rem', '1rem', '2rem'],
 };
 
-export const render = (children: ReactNode): ReactTestRenderer =>
-  TestRenderer.create(<ThemeProvider theme={theme}>{children}</ThemeProvider>);
+export const render = (children: ReactNode): void => {
+  act(() => {
+    create(<ThemeProvider theme={theme}>{children}</ThemeProvider>);
+  });
+};
+
+export const sleep = (duration: number): void => {
+  act(() => {
+    jest.advanceTimersByTime(duration);
+  });
+};

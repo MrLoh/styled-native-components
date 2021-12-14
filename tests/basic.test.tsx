@@ -6,7 +6,7 @@ import { render, theme } from './test-helper';
 
 jest.mock('../src/window-dimensions.ts');
 
-describe.only('basic styles', () => {
+describe('basic styles', () => {
   beforeEach(() => {
     (View as unknown as jest.Mock).mockClear();
     (ScrollView as unknown as jest.Mock).mockClear();

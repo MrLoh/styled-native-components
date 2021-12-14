@@ -18,7 +18,7 @@ describe('typings', () => {
     }
   );
 
-  it.only('passes through component types', () => {
+  it('passes through component types', () => {
     const StyledComponent = styled.View`
       background-color: white;
     `;

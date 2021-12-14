@@ -7,7 +7,7 @@ import { render, theme } from './test-helper';
 
 jest.mock('../src/window-dimensions.ts');
 
-describe.only('media queries', () => {
+describe('media queries', () => {
   beforeEach(() => {
     (ScrollView as unknown as jest.Mock).mockClear();
     (Text as unknown as jest.Mock).mockClear();

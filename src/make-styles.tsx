@@ -18,10 +18,12 @@ import type { Style } from 'css-to-react-native';
 import type { Theme } from './theme';
 
 //Setting up Container Query Context
-export let ContainerSizeContext = createContext(null) as React.Context<GenericSize | null>;
+export let ContainerSizeContext = createContext(undefined) as React.Context<
+  GenericSize | undefined
+>;
 
 export const setContainerContext = (
-  ExternalContainerContext: React.Context<GenericSize | null>
+  ExternalContainerContext: React.Context<GenericSize | undefined>
 ) => {
   ContainerSizeContext = ExternalContainerContext;
 };
@@ -134,16 +136,13 @@ const matchQueryRule = (
   windowDimensions: ScaledSize,
   containerDimensions?: GenericSize
 ): boolean => {
+  if (queryType === '@container' && !containerDimensions) return false;
   let matched = true;
   for (const condition of rule.split('and')) {
     const [name, strVal] = condition.replace(/\(|\)/g, '').trim().split(':');
     const value = resolveLengthUnit(strVal, theme, windowDimensions);
     if (typeof value !== 'number') throw new Error(`invalid unit on @media/@container ${rule}`);
-    if (queryType === '@container' && !containerDimensions) {
-      return false;
-    }
-    const { width, height } =
-      queryType === '@container' && containerDimensions ? containerDimensions : windowDimensions;
+    const { width, height } = queryType === '@container' ? containerDimensions! : windowDimensions;
     switch (name) {
       case 'min-width':
         matched = matched && width >= value;
@@ -184,9 +183,7 @@ const useStyleSheet = (
             mediaRule.substring(mediaRule.indexOf(' ')),
             theme,
             windowDimensions,
-            containerDimensions !== undefined && containerDimensions?.height > 0
-              ? containerDimensions
-              : undefined
+            containerDimensions
           )
         ) {
           mediaStylesArray.push(
@@ -259,7 +256,7 @@ export const makeTemplateFunction =
           styles,
           theme,
           dimensions,
-          containerDimensions ? containerDimensions : undefined
+          containerDimensions
         );
         styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
         const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
@@ -277,12 +274,13 @@ export const makeTemplateFunction =
               </Component>
             </ContainerSizeContext.Provider>
           );
+        } else {
+          return (
+            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
+              {children}
+            </Component>
+          );
         }
-        return (
-          <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
-            {children}
-          </Component>
-        );
       };
     } else {
       // if the cssString depends on props, we can at least ignore changes to children
@@ -333,12 +331,13 @@ export const makeTemplateFunction =
               </Component>
             </ContainerSizeContext.Provider>
           );
+        } else {
+          return (
+            <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
+              {children}
+            </Component>
+          );
         }
-        return (
-          <Component {...filterComponentProps(transformedProps)} {...styleProps} ref={ref}>
-            {children}
-          </Component>
-        );
       };
     }
     StyledForwardRefRenderFunction.displayName = displayName;
