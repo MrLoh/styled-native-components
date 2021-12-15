@@ -52,7 +52,7 @@ describe('basic styles', () => {
       color: ${(p) => (p.active ? '$accent' : '$text')};
     `;
     render(<StyledComponent />);
-    expect(View).toHaveBeenCalledWith(
+    expect(View).toHaveBeenLastCalledWith(
       expect.objectContaining({
         style: {
           color: theme.colors.text,
@@ -61,7 +61,7 @@ describe('basic styles', () => {
       {}
     );
     render(<StyledComponent active />);
-    expect(View).toHaveBeenCalledWith(
+    expect(View).toHaveBeenLastCalledWith(
       expect.objectContaining({
         style: {
           color: theme.colors.accent,

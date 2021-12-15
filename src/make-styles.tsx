@@ -193,6 +193,7 @@ const useStyleSheet = (
       }
       finalStyles[key] = Object.assign({}, ...mediaStylesArray);
     }
+    console.log(StyleSheet.create(finalStyles));
     return StyleSheet.create(finalStyles);
   }, [styles, theme, windowDimensions, containerDimensions]);
 };
@@ -248,8 +249,7 @@ export const makeTemplateFunction =
         const isContainer = Object.values(styles).some(
           (s) => s.main.contain || s.main.containerType || s.main.container
         );
-
-        if (Object.values(styles).some((s) => s.main.containName)) {
+        if (Object.values(styles).some((s) => s.main.containerName)) {
           throw new Error('Container-name is not currently supported by styled-native-components');
         }
         let styleProps: { [key: string]: Style | Style[] } = useStyleSheet(
@@ -261,6 +261,7 @@ export const makeTemplateFunction =
         styleProps = style ? { ...styleProps, style: [styleProps.style, style] } : styleProps;
         const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
 
+        console.log(styles);
         if (isContainer) {
           return (
             <ContainerSizeContext.Provider value={componentDimensions}>
@@ -306,7 +307,7 @@ export const makeTemplateFunction =
           (s) => s.main.contain || s.main.containerType || s.main.container
         );
 
-        if (Object.values(styles).some((s) => s.main.containName)) {
+        if (Object.values(styles).some((s) => s.main.containerName)) {
           throw new Error('Container-name is not currently supported by styled-native-components');
         }
 
