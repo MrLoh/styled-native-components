@@ -1,10 +1,10 @@
-import React, { useMemo, forwardRef, memo, createContext, useContext } from 'react';
+import React, { useMemo, forwardRef, memo } from 'react';
 import { StyleSheet } from 'react-native';
 import { getPropertyName, getStylesForProperty } from 'css-to-react-native';
 
 import { useWindowDimensions } from './window-dimensions';
 import type { GenericSize } from './container-dimensions';
-import { useComponentDimensions } from './container-dimensions';
+import { ContainerProvider, useContainerDimensions } from './container-dimensions';
 import {
   resolveColorVariablePlaceholder,
   resolveThemeVariables,
@@ -16,17 +16,6 @@ import type { ForwardRefRenderFunction, ReactNode, ComponentType } from 'react';
 import type { StyleProp, ScaledSize } from 'react-native';
 import type { Style } from 'css-to-react-native';
 import type { Theme } from './theme';
-
-//Setting up Container Query Context
-export let ContainerSizeContext = createContext(undefined) as React.Context<
-  GenericSize | undefined
->;
-
-export const setContainerContext = (
-  ExternalContainerContext: React.Context<GenericSize | undefined>
-) => {
-  ContainerSizeContext = ExternalContainerContext;
-};
 
 // resolve css template literal content into a single string, allow for props functions
 const cssCommentRegexp = new RegExp('\\/\\*[^]+?\\*\\/', 'g');
@@ -241,10 +230,9 @@ export const makeTemplateFunction =
       ) => {
         const theme = useTheme();
         const dimensions = useWindowDimensions();
-        const [componentDimensions, layoutEvent] = useComponentDimensions();
 
         //if no container is provided, @container query should not be applied
-        const containerDimensions = useContext(ContainerSizeContext);
+        const containerDimensions = useContainerDimensions();
         const isContainer = Object.values(styles).some(
           (s) => s.main.contain || s.main.containerType || s.main.container
         );
@@ -262,16 +250,18 @@ export const makeTemplateFunction =
 
         if (isContainer) {
           return (
-            <ContainerSizeContext.Provider value={componentDimensions}>
-              <Component
-                {...filterComponentProps(transformedProps)}
-                {...styleProps}
-                ref={ref}
-                onLayout={layoutEvent}
-              >
-                {children}
-              </Component>
-            </ContainerSizeContext.Provider>
+            <ContainerProvider>
+              {(onLayout) => (
+                <Component
+                  {...filterComponentProps(transformedProps)}
+                  {...styleProps}
+                  ref={ref}
+                  onLayout={onLayout}
+                >
+                  {children}
+                </Component>
+              )}
+            </ContainerProvider>
           );
         } else {
           return (
@@ -291,7 +281,6 @@ export const makeTemplateFunction =
       ) => {
         const theme = useTheme();
         const dimensions = useWindowDimensions();
-        const [componentDimensions, layoutEvent] = useComponentDimensions();
 
         const transformedProps = transformProps({ ...props, theme } as AttrProps<P, I, A>);
         const cssString = useMemo(() => {
@@ -300,7 +289,7 @@ export const makeTemplateFunction =
         const styles = useMemo(() => createNestedStyleObject(cssString), [cssString]);
 
         //if no container is provided, @container query should not be applied
-        const containerDimensions = useContext(ContainerSizeContext);
+        const containerDimensions = useContainerDimensions();
         const isContainer = Object.values(styles).some(
           (s) => s.main.contain || s.main.containerType || s.main.container
         );
@@ -319,16 +308,18 @@ export const makeTemplateFunction =
 
         if (isContainer) {
           return (
-            <ContainerSizeContext.Provider value={componentDimensions}>
-              <Component
-                {...filterComponentProps(transformedProps)}
-                {...styleProps}
-                ref={ref}
-                onLayout={layoutEvent}
-              >
-                {children}
-              </Component>
-            </ContainerSizeContext.Provider>
+            <ContainerProvider>
+              {(onLayout) => (
+                <Component
+                  {...filterComponentProps(transformedProps)}
+                  {...styleProps}
+                  ref={ref}
+                  onLayout={onLayout}
+                >
+                  {children}
+                </Component>
+              )}
+            </ContainerProvider>
           );
         } else {
           return (
