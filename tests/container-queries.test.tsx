@@ -3,7 +3,7 @@ import React from 'react';
 import { Text } from 'react-native';
 
 import styled, { useWindowDimensions } from '../src';
-import { render, sleep, theme } from './test-helper';
+import { expectToThrow, render, sleep, theme } from './test-helper';
 
 jest.mock('../src/window-dimensions.ts');
 describe('container queries', () => {
@@ -14,6 +14,11 @@ describe('container queries', () => {
     (Text as unknown as jest.Mock).mockClear();
     (useWindowDimensions as jest.Mock).mockClear();
   });
+
+  const StyledContainer = styled.View`
+    container: layout;
+    width: 100px;
+  `;
 
   const StyledFunctionContainer = styled.View<{ width: number; height?: number }>`
     container: layout;
@@ -242,9 +247,9 @@ describe('container queries', () => {
     );
 
     render(
-      <StyledFunctionContainer width={30}>
+      <StyledContainer>
         <StyledComponent />
-      </StyledFunctionContainer>
+      </StyledContainer>
     );
     sleep(1000);
     expect(Text).toHaveBeenLastCalledWith(
@@ -371,20 +376,20 @@ describe('container queries', () => {
   });
 
   //test passes, but does not clean up other errors
-  it.skip('does not support named containers', () => {
+  it('does not support named containers', () => {
     const StyledContainerWithName = styled.View`
       container-name: sidebar;
     `;
-    expect(() => {
+    expectToThrow(() => {
       render(<StyledContainerWithName />);
-    }).toThrowError('Container-name is not currently supported by styled-native-components');
+    }, 'Container-name is not currently supported by styled-native-components');
 
     const StyledContainerWithNameAndProps = styled.View<{ active: boolean }>`
       container-name: sidebar;
       font-size: ${(p) => (p.active ? '2rem' : '1.5rem')};
     `;
-    expect(() => {
+    expectToThrow(() => {
       render(<StyledContainerWithNameAndProps active />);
-    }).toThrowError('Container-name is not currently supported by styled-native-components');
+    }, 'Container-name is not currently supported by styled-native-components');
   });
 });

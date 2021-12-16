@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 
 import styled, { useWindowDimensions } from '../src';
-import { render, theme } from './test-helper';
+import { expectToThrow, render, theme } from './test-helper';
 
 jest.mock('../src/window-dimensions.ts');
 
@@ -110,8 +110,7 @@ describe('basic styles', () => {
     );
   });
 
-  //test passes, but outputs another error as well
-  it.skip('throws an error with unrecognized styles', () => {
+  it('throws an error with unrecognized units', () => {
     const StyledComponent = styled.View`
       background-color: $background;
       contentContainer {
@@ -119,8 +118,8 @@ describe('basic styles', () => {
       }
     `;
 
-    expect(() => {
+    expectToThrow(() => {
       render(<StyledComponent />);
-    }).toThrowError("cannot parse length string '500plx', unknown unit 'plx'");
+    }, "cannot parse length string '500plx', unknown unit 'plx'");
   });
 });
