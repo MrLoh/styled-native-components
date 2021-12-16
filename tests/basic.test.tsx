@@ -109,4 +109,18 @@ describe('basic styles', () => {
       {}
     );
   });
+
+  //test passes, but outputs another error as well
+  it.skip('throws an error with unrecognized styles', () => {
+    const StyledComponent = styled.View`
+      background-color: $background;
+      contentContainer {
+        width: 500plx;
+      }
+    `;
+
+    expect(() => {
+      render(<StyledComponent />);
+    }).toThrowError("cannot parse length string '500plx', unknown unit 'plx'");
+  });
 });

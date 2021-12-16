@@ -1,23 +1,24 @@
 import { createNestedStyleObject } from '../src/make-styles';
 import React from 'react';
-import { ScrollView, Text } from 'react-native';
+import { Text } from 'react-native';
 
-import styled from '../src';
+import styled, { useWindowDimensions } from '../src';
 import { render, sleep, theme } from './test-helper';
 
-describe('media queries', () => {
+jest.mock('../src/window-dimensions.ts');
+describe('container queries', () => {
   beforeAll(() => jest.useFakeTimers());
   afterAll(() => jest.useRealTimers());
 
   beforeEach(() => {
-    (ScrollView as unknown as jest.Mock).mockClear();
     (Text as unknown as jest.Mock).mockClear();
+    (useWindowDimensions as jest.Mock).mockClear();
   });
 
   const StyledFunctionContainer = styled.View<{ width: number; height?: number }>`
     container: layout;
     width: ${(p) => p.width}px;
-    height: ${(p) => (p.height ? p.height + 'px' : '20px')};
+    height: ${(p) => p.height || 20}px;
   `;
 
   it('can parse nested css', () => {
@@ -166,9 +167,13 @@ describe('media queries', () => {
       @media (max-width: 800px) {
         font-size: 1.5rem;
       }
+      color: red;
+      @container (max-width: 800px) {
+        color: green;
+      }
     `;
 
-    //both cases render font size 1.5rem even with the container size changing
+    (useWindowDimensions as jest.Mock).mockReturnValue({ width: 1000, height: 1000 });
     render(
       <StyledFunctionContainer width={1000}>
         <StyledMediaComponent />
@@ -176,10 +181,11 @@ describe('media queries', () => {
     );
     sleep(1000);
     expect(Text).toHaveBeenLastCalledWith(
-      expect.objectContaining({ style: { fontSize: 1.5 * theme.rem } }),
+      expect.objectContaining({ style: { fontSize: 2 * theme.rem, color: 'red' } }),
       {}
     );
 
+    (useWindowDimensions as jest.Mock).mockReturnValue({ width: 1000, height: 1000 });
     render(
       <StyledFunctionContainer width={500}>
         <StyledMediaComponent />
@@ -187,7 +193,31 @@ describe('media queries', () => {
     );
     sleep(1000);
     expect(Text).toHaveBeenLastCalledWith(
-      expect.objectContaining({ style: { fontSize: 1.5 * theme.rem } }),
+      expect.objectContaining({ style: { fontSize: 2 * theme.rem, color: 'green' } }),
+      {}
+    );
+
+    (useWindowDimensions as jest.Mock).mockReturnValue({ width: 500, height: 1000 });
+    render(
+      <StyledFunctionContainer width={1000}>
+        <StyledMediaComponent />
+      </StyledFunctionContainer>
+    );
+    sleep(1000);
+    expect(Text).toHaveBeenLastCalledWith(
+      expect.objectContaining({ style: { fontSize: 1.5 * theme.rem, color: 'red' } }),
+      {}
+    );
+
+    (useWindowDimensions as jest.Mock).mockReturnValue({ width: 500, height: 1000 });
+    render(
+      <StyledFunctionContainer width={500}>
+        <StyledMediaComponent />
+      </StyledFunctionContainer>
+    );
+    sleep(1000);
+    expect(Text).toHaveBeenLastCalledWith(
+      expect.objectContaining({ style: { fontSize: 1.5 * theme.rem, color: 'green' } }),
       {}
     );
   });
@@ -340,28 +370,21 @@ describe('media queries', () => {
     );
   });
 
+  //test passes, but does not clean up other errors
   it.skip('does not support named containers', () => {
     const StyledContainerWithName = styled.View`
       container-name: sidebar;
     `;
-    try {
+    expect(() => {
       render(<StyledContainerWithName />);
-      expect(false);
-    } 
-    catch(e) {
-      if((e as Error).message === "Container-name is not currently supported by styled-native-components") {
-        expect(true);
-      } else {
-        expect(false);
-      }
-    }
+    }).toThrowError('Container-name is not currently supported by styled-native-components');
 
-  const StyledContainerWithNameAndProps = styled.View<{active: boolean}>`
+    const StyledContainerWithNameAndProps = styled.View<{ active: boolean }>`
       container-name: sidebar;
       font-size: ${(p) => (p.active ? '2rem' : '1.5rem')};
     `;
     expect(() => {
-      render(<StyledContainerWithNameAndProps active/>);
-    }).toThrow('Container-name is not currently supported by styled-native-components');
+      render(<StyledContainerWithNameAndProps active />);
+    }).toThrowError('Container-name is not currently supported by styled-native-components');
   });
 });

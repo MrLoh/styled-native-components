@@ -154,7 +154,7 @@ class Component extends React.Component {
 
 The library supports both media and container queries.
 
-Currently, this library support container queries in their most basic forms - meaning, you cannot use named containers with this library.
+In order to use container queries, simply style the wrapper component with "contain," "container," or "container-type." The container query will access the closest container Currently, this library supports container queries in their most basic forms - meaning, you cannot use named containers with this library.
 
 As noted here (https://github.com/w3c/csswg-drafts/issues/6178), if there is no container context provided, the container query will not be applied. Instead, container queries should always be given a context such as seen below:
 
