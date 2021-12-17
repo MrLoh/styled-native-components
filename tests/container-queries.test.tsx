@@ -309,6 +309,7 @@ describe('container queries', () => {
     const StyledComponent = styled.Text<{ width: number }>`
       width: ${(p) => p.width}px;
       font-size: 2rem;
+      container: inline-size;
       @container (max-width: 800px) {
         font-size: 1.5rem;
       }
@@ -331,7 +332,9 @@ describe('container queries', () => {
     );
     sleep(1000);
     expect(Text).toHaveBeenCalledWith(
-      expect.objectContaining({ style: { fontSize: 2 * theme.rem, width: 1000 } }),
+      expect.objectContaining({
+        style: { container: 'inline-size', fontSize: 2 * theme.rem, width: 50 },
+      }),
       {}
     );
 
@@ -344,7 +347,9 @@ describe('container queries', () => {
     );
     sleep(1000);
     expect(Text).toHaveBeenCalledWith(
-      expect.objectContaining({ style: { fontSize: 2 * theme.rem, width: 100 } }),
+      expect.objectContaining({
+        style: { container: 'inline-size', fontSize: 2 * theme.rem, width: 100 },
+      }),
       {}
     );
 
@@ -357,7 +362,9 @@ describe('container queries', () => {
     );
     sleep(1000);
     expect(Text).toHaveBeenCalledWith(
-      expect.objectContaining({ style: { fontSize: 1.5 * theme.rem, width: 1000 } }),
+      expect.objectContaining({
+        style: { container: 'inline-size', fontSize: 1.5 * theme.rem, width: 1000 },
+      }),
       {}
     );
 
@@ -370,7 +377,9 @@ describe('container queries', () => {
     );
     sleep(1000);
     expect(Text).toHaveBeenCalledWith(
-      expect.objectContaining({ style: { fontSize: 1.5 * theme.rem, width: 100 } }),
+      expect.objectContaining({
+        style: { container: 'inline-size', fontSize: 1.5 * theme.rem, width: 100 },
+      }),
       {}
     );
   });
