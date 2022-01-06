@@ -1,6 +1,15 @@
+import { useEffect } from 'react';
+
 // Components
 type Style = Object;
-export const View = jest.fn(() => 'View');
+
+export const View = jest.fn(({ onLayout, style, children }) => {
+  // needed to make container dimensions work
+  useEffect(() => {
+    onLayout?.({ nativeEvent: { layout: { width: style.width, height: style.height } } });
+  }, []);
+  return children || 'View';
+});
 export const Text = jest.fn(() => 'Text');
 export const Image = jest.fn(() => 'Image');
 export const TextInput = jest.fn(() => 'TextInput');

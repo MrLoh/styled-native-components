@@ -13,10 +13,10 @@ import { render, theme } from './test-helper';
 
 jest.mock('../src/window-dimensions.ts');
 
-describe.only('hooks', () => {
+describe('hooks', () => {
   beforeEach(() => {
-    ((View as unknown) as jest.Mock).mockClear();
-    ((Text as unknown) as jest.Mock).mockClear();
+    (View as unknown as jest.Mock).mockClear();
+    (Text as unknown as jest.Mock).mockClear();
     (useWindowDimensions as jest.Mock).mockClear();
   });
 

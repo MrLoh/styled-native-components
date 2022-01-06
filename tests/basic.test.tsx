@@ -2,14 +2,14 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 
 import styled, { useWindowDimensions } from '../src';
-import { render, theme } from './test-helper';
+import { expectToThrow, render, theme } from './test-helper';
 
 jest.mock('../src/window-dimensions.ts');
 
-describe.only('basic styles', () => {
+describe('basic styles', () => {
   beforeEach(() => {
-    ((View as unknown) as jest.Mock).mockClear();
-    ((ScrollView as unknown) as jest.Mock).mockClear();
+    (View as unknown as jest.Mock).mockClear();
+    (ScrollView as unknown as jest.Mock).mockClear();
     (useWindowDimensions as jest.Mock).mockClear();
   });
 
@@ -52,7 +52,7 @@ describe.only('basic styles', () => {
       color: ${(p) => (p.active ? '$accent' : '$text')};
     `;
     render(<StyledComponent />);
-    expect(View).toHaveBeenCalledWith(
+    expect(View).toHaveBeenLastCalledWith(
       expect.objectContaining({
         style: {
           color: theme.colors.text,
@@ -61,7 +61,7 @@ describe.only('basic styles', () => {
       {}
     );
     render(<StyledComponent active />);
-    expect(View).toHaveBeenCalledWith(
+    expect(View).toHaveBeenLastCalledWith(
       expect.objectContaining({
         style: {
           color: theme.colors.accent,
@@ -108,5 +108,18 @@ describe.only('basic styles', () => {
       }),
       {}
     );
+  });
+
+  it('throws an error with unrecognized units', () => {
+    const StyledComponent = styled.View`
+      background-color: $background;
+      contentContainer {
+        width: 500plx;
+      }
+    `;
+
+    expectToThrow(() => {
+      render(<StyledComponent />);
+    }, "cannot parse length string '500plx', unknown unit 'plx'");
   });
 });
