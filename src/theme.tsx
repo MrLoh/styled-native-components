@@ -13,8 +13,8 @@ export interface ThemeInterface {
 }
 
 /**
- * This interface can be augmented by users to add types to `styled-components`' default theme
- * without needing to reexport `ThemedStyledComponentsModule`.
+ * This interface can be augmented by users to add types to `styled-native-components`' default
+ * theme without needing to reexport `ThemedStyledComponentsModule`.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Theme extends ThemeInterface {}

@@ -23,7 +23,7 @@
         "name": "typescript-styled-plugin",
         "tags": ["styled"],
         "lint": {
-          "validProperties": ["elevation"],
+          "validProperties": ["elevation", "container"],
           "duplicateProperties": "warn",
           "zeroUnits": "warning",
           "float": "warning"

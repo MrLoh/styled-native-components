@@ -6,7 +6,7 @@ import type { ScaledSize } from 'react-native';
 const WINDOW_DIMENSIONS_DEBOUNCE = 500;
 const windowDimensionListeners = new Map();
 let initialWindowDimensions = Dimensions.get('window');
-let timeoutId: NodeJS.Timeout | undefined;
+let timeoutId: ReturnType<typeof setTimeout> | undefined;
 Dimensions.addEventListener('change', ({ window }) => {
   timeoutId && clearTimeout(timeoutId);
   timeoutId = setTimeout(() => {

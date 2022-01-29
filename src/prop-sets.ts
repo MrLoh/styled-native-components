@@ -31,7 +31,8 @@ const accessibilityPropNames = [
   'accessibilityIgnoresInvertColors',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
-const accessibilityPropNamesWithEnsuredCompleteKeys: readonly typeof accessibilityPropNames[number][] = accessibilityPropNames as readonly AccessibilityPropName[];
+const accessibilityPropNamesWithEnsuredCompleteKeys: readonly typeof accessibilityPropNames[number][] =
+  accessibilityPropNames as readonly AccessibilityPropName[];
 
 type ViewPropName = keyof ViewProps;
 const viewPropNames = [
@@ -75,7 +76,8 @@ const viewPropNames = [
   'children',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
-const viewPropNamesWithEnsuredCompleteKeys: readonly typeof viewPropNames[number][] = viewPropNames as readonly ViewPropName[];
+const viewPropNamesWithEnsuredCompleteKeys: readonly typeof viewPropNames[number][] =
+  viewPropNames as readonly ViewPropName[];
 export const viewProps = new Set(viewPropNamesWithEnsuredCompleteKeys);
 
 type TextPropName = keyof TextProps;
@@ -109,7 +111,8 @@ const textPropNames = [
   'android_hyphenationFrequency',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
-const textPropNamesWithEnsuredCompleteKeys: readonly typeof textPropNames[number][] = textPropNames as readonly TextPropName[];
+const textPropNamesWithEnsuredCompleteKeys: readonly typeof textPropNames[number][] =
+  textPropNames as readonly TextPropName[];
 export const textProps = new Set(textPropNamesWithEnsuredCompleteKeys);
 
 // we don't want props that may conflict with styles
@@ -147,7 +150,8 @@ const imagePropNames = [
   'nativeID',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
-const imagePropNamesWithEnsuredCompleteKeys: readonly typeof imagePropNames[number][] = imagePropNames as readonly ImagePropName[];
+const imagePropNamesWithEnsuredCompleteKeys: readonly typeof imagePropNames[number][] =
+  imagePropNames as readonly ImagePropName[];
 export const imageProps = new Set(imagePropNamesWithEnsuredCompleteKeys);
 
 type ListPropName = keyof VirtualizedListProps<any>;
@@ -249,9 +253,11 @@ const listPropNames = [
   'stickyHeaderHiddenOnScroll',
   'StickyHeaderComponent',
   'maintainVisibleContentPosition',
+  'automaticallyAdjustsScrollIndicatorInsets',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
-const listPropNamesWithEnsuredCompleteKeys: readonly typeof listPropNames[number][] = listPropNames as readonly ListPropName[];
+const listPropNamesWithEnsuredCompleteKeys: readonly typeof listPropNames[number][] =
+  listPropNames as readonly ListPropName[];
 export const listProps = new Set(listPropNamesWithEnsuredCompleteKeys);
 
 type InputPropName = keyof TextInputProps;
@@ -319,7 +325,8 @@ const inputPropNames = [
   'autoComplete',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
-const inputPropNamesWithEnsuredCompleteKeys: readonly typeof inputPropNames[number][] = inputPropNames as readonly InputPropName[];
+const inputPropNamesWithEnsuredCompleteKeys: readonly typeof inputPropNames[number][] =
+  inputPropNames as readonly InputPropName[];
 export const inputProps = new Set(inputPropNamesWithEnsuredCompleteKeys);
 
 type PressablePropName = keyof PressableProps | keyof TouchableOpacityProps;
@@ -351,7 +358,8 @@ const pressablePropNames = [
   'nextFocusUp',
 ] as const;
 // this ensures that we get typescript errors if a key from ViewProps is missing
-const pressablePropNamesWithEnsuredCompleteKeys: readonly typeof pressablePropNames[number][] = pressablePropNames as readonly PressablePropName[];
+const pressablePropNamesWithEnsuredCompleteKeys: readonly typeof pressablePropNames[number][] =
+  pressablePropNames as readonly PressablePropName[];
 export const pressableProps = new Set(pressablePropNamesWithEnsuredCompleteKeys);
 
 export const domProps = new Set([
