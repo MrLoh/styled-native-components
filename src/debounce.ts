@@ -1,12 +1,11 @@
 const debounce = (fn: (...args: any[]) => void, duration: number) => {
-  let timeout: NodeJS.Timeout | undefined;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   return (...args: Parameters<typeof fn>) => {
-    const invoke = () => {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => {
       timeout = undefined;
       return fn(...args);
-    };
-    timeout && clearTimeout(timeout);
-    timeout = setTimeout(invoke, duration);
+    }, duration);
   };
 };
 
