@@ -1,6 +1,6 @@
 import { createNestedStyleObject } from '../src/make-styles';
 import React from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 
 import styled, { useWindowDimensions } from '../src';
 import { expectToThrow, render, sleep, theme } from './test-helper';
@@ -12,6 +12,7 @@ describe('container queries', () => {
 
   beforeEach(() => {
     (Text as unknown as jest.Mock).mockClear();
+    (View as unknown as jest.Mock).mockClear();
     (useWindowDimensions as jest.Mock).mockClear();
   });
 
@@ -305,80 +306,110 @@ describe('container queries', () => {
     );
   });
 
-  it('supports nested container queries and containers', () => {
-    const StyledComponent = styled.Text<{ width: number }>`
-      width: ${(p) => p.width}px;
-      font-size: 2rem;
-      container: inline-size;
-      @container (max-width: 800px) {
-        font-size: 1.5rem;
-      }
-    `;
-    const StyledInnerComponent = styled.Text`
-      width: 50px;
+  it('container queries are based on inner nested container', () => {
+    const StyledComponent = styled.Text`
       color: red;
       @container (max-width: 800px) {
         color: blue;
       }
     `;
 
-    //testing the innerComponent values would mean accessing the children for styledComponent
+    // inner doesn't satisfy container query
     render(
       <StyledFunctionContainer width={1000}>
-        <StyledComponent width={1000}>
-          <StyledInnerComponent />
-        </StyledComponent>
+        <StyledFunctionContainer width={1000}>
+          <StyledComponent />
+        </StyledFunctionContainer>
       </StyledFunctionContainer>
     );
     sleep(1000);
-    expect(Text).toHaveBeenCalledWith(
+    expect(Text).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        style: { container: 'inline-size', fontSize: 2 * theme.rem, width: 50 },
+        style: { color: 'red' },
       }),
       {}
     );
 
+    // inner doesn't satisfy container query, but outer does
     render(
-      <StyledFunctionContainer width={1000}>
-        <StyledComponent width={100}>
-          <StyledInnerComponent />
-        </StyledComponent>
+      <StyledFunctionContainer width={100}>
+        <StyledFunctionContainer width={1000}>
+          <StyledComponent />
+        </StyledFunctionContainer>
       </StyledFunctionContainer>
     );
     sleep(1000);
-    expect(Text).toHaveBeenCalledWith(
+    expect(Text).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        style: { container: 'inline-size', fontSize: 2 * theme.rem, width: 100 },
+        style: { color: 'red' },
+      }),
+      {}
+    );
+
+    // inner does satisfy container query
+    render(
+      <StyledFunctionContainer width={100}>
+        <StyledFunctionContainer width={100}>
+          <StyledComponent />
+        </StyledFunctionContainer>
+      </StyledFunctionContainer>
+    );
+    sleep(1000);
+    expect(Text).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        style: { color: 'blue' },
+      }),
+      {}
+    );
+
+    // inner does satisfy container query, but outer doesn't
+    render(
+      <StyledFunctionContainer width={1000}>
+        <StyledFunctionContainer width={100}>
+          <StyledComponent />
+        </StyledFunctionContainer>
+      </StyledFunctionContainer>
+    );
+    sleep(1000);
+    expect(Text).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        style: { color: 'blue' },
+      }),
+      {}
+    );
+  });
+
+  it('nested container queries can use container queries themselves', () => {
+    const StyledInnerContainer = styled.View`
+      margin-top: 2rem;
+      container: inline-size;
+      @container (max-width: 800px) {
+        margin-top: 1.5rem;
+      }
+    `;
+
+    render(
+      <StyledFunctionContainer width={1000}>
+        <StyledInnerContainer />
+      </StyledFunctionContainer>
+    );
+    sleep(1000);
+    expect(View).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        style: { container: 'inline-size', marginTop: 2 * theme.rem },
       }),
       {}
     );
 
     render(
       <StyledFunctionContainer width={100}>
-        <StyledComponent width={1000}>
-          <StyledInnerComponent />
-        </StyledComponent>
+        <StyledInnerContainer />
       </StyledFunctionContainer>
     );
     sleep(1000);
-    expect(Text).toHaveBeenCalledWith(
+    expect(View).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        style: { container: 'inline-size', fontSize: 1.5 * theme.rem, width: 1000 },
-      }),
-      {}
-    );
-
-    render(
-      <StyledFunctionContainer width={100}>
-        <StyledComponent width={100}>
-          <StyledInnerComponent />
-        </StyledComponent>
-      </StyledFunctionContainer>
-    );
-    sleep(1000);
-    expect(Text).toHaveBeenCalledWith(
-      expect.objectContaining({
-        style: { container: 'inline-size', fontSize: 1.5 * theme.rem, width: 100 },
+        style: { container: 'inline-size', marginTop: 1.5 * theme.rem },
       }),
       {}
     );
