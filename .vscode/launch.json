@@ -2,16 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug",
+      "name": "vscode-jest-tests",
       "type": "node",
       "request": "launch",
-      "env": { "CI": "true" },
-      "runtimeExecutable": "ts-node",
-      "args": ["./run.ts"],
-      "cwd": "${workspaceRoot}",
-      "protocol": "inspector",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "yarn",
+      "args": [
+        "test",
+        "--runInBand",
+        "--watchAll=false",
+        "--coverage=false"
+      ]
     }
   ]
 }
