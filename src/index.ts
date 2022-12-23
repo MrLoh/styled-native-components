@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { useWindowDimensions } from './window-dimensions';
+import { useColorScheme } from './color-scheme';
 import { ThemeProvider, useTheme, withTheme, ThemeContext, setThemeContext } from './theme';
 import { makeTemplateFunction, useStyle } from './make-styles';
 import { useLengthAttribute, useColorAttribute } from './attribute-hooks';
@@ -88,6 +89,7 @@ export {
   useLengthAttribute,
   useColorAttribute,
   useWindowDimensions,
+  useColorScheme,
 };
 
 export type { Theme, ThemeInterface };
