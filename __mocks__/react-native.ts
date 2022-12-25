@@ -29,3 +29,7 @@ export const Dimensions = {
   get: jest.fn(() => ({ width: 100, height: 100, scale: 1, fontScale: 1 })),
   addEventListener: jest.fn(() => {}),
 };
+export const Appearance = {
+  addChangeListener: jest.fn(() => {}),
+  getColorScheme: jest.fn(() => 'light'),
+};
